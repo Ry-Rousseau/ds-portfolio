@@ -1,0 +1,658 @@
+---
+title: "Q2"
+author: '29189'
+date: "2024-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, eval = TRUE, suppressMessages = TRUE, warning = FALSE, message = FALSE)
+```
+
+
+```{r laod data, eval=TRUE}
+# Load the data
+cces_2020_raw <- read.csv(file="CES20_Common_OUTPUT_vv.csv")
+
+# Load the libraries
+library(tidyverse)
+library(missForest)
+library(fastDummies)
+library(caret)
+library(glmnet)
+library(MLmetrics)
+library("randomForest")
+library("pROC")
+library(lightgbm)
+```
+
+```{r cleaning, eval=TRUE}
+## Data cleaning
+
+## Observation Filtering
+cces_2020_full <- cces_2020_raw %>% 
+  # Keep only 'active' registered voters
+  filter(is.na(vvweight) == FALSE) %>% 
+  # Remove voters with no outcome data
+  filter(is.na(CC20_363) == FALSE) %>% 
+  # Set CC20_363 as the outcome variable
+  mutate(outcome = CC20_363) %>%
+  # Define the outcome variable levels - likely to vote or not likely to vote 
+  # Likely to vote = responses 1,2,3,4 | Not likely to vote = responses 5,6, ie. No or undecided on general election voting - Set positive class to non-likely to vote = 1
+  mutate(outcome = ifelse(outcome %in% c(5,6), 1, 0)) %>% 
+  select(-CC20_363) %>% 
+  # Move the outcome column to the last position
+  select(-outcome, outcome)
+
+# X variable filtering 
+cces_2020_full <- cces_2020_full %>% 
+  # Exempt some key variables from filter by renaming
+  rename(presvote16 = presvote16post) %>% 
+  # Remove selection of post-election survey variables that relate to the outcome or the act of voting
+  select(-contains("post"), -contains("CC20_40"), -contains("CC20_41")) %>% 
+  # Remove religious church attendance variables as not relevant and add unnecessary dimensionality
+  select(-contains("religpew_")) %>% 
+  # Remove dual citizenship variables as sample sizes too small and dimensionality issue
+  select(-contains("dualctry")) %>%
+  # Remove Survey metadata
+  select(-contains("timing")) %>% 
+  # Remove variables on irrelevant political figures
+  select(-contains("AttC"), -contains("SecC")) %>%
+  # Rename some key respondent variables
+  rename(primary_vote = CL_2020pvm, state = CL_state, party = CL_party) %>% 
+  select(-contains("CL_")) %>%
+  # Remove unnecessary racial background vars and run-for-office var
+  select(-contains("hisp"), -contains("asian"), -contains("multrace"), -contains("432b_")) %>%
+  # Remove unncessary metadata
+  select( -contains("starttime"), -contains("endtime"), -contains("caseid"), -contains("commonweight"), -contains("commonpostweight"), -contains("tookpost"), -contains("X"), -contains("inputstate"), -contains("other"), -contains("cces"), -contains("region"), -contains("cdid"), -contains("_t"), -contains("_voted")) %>% 
+  # Remove variables that are proxies for state - such as respondent's state senator - eliminates some redundancy and dimensionality - also focuses later model on more useful terms for identifying non-voters by bringing predictions to more generic variables like demographics, preventing overfitting
+  select(-c("CurrentSen1Name", "CurrentSen2Name", "LowerChamberName", "LegName", "SenCand2Name", "SenCand1Name", "CurrentGovName", "GovCand1Name"))
+
+# Further X filtering
+cces_2020_full <- cces_2020_full %>%
+  # Remove variables with only one unique value
+  select_if(~ length(unique(.)) > 1) %>%
+  # Remove variables with more than 100 unique values
+  select_if(~ length(unique(.)) <= 100) %>% 
+  # Remove a selection of handpicked variables that were part of the post-election survey and are equivalent to outcome - keeping these as predictors is 'cheating'
+  select(-c("CC20_364a", "CC20_364b", "votereg_f", "CC20_365", "CC20_366"))
+
+# Now we're down to 330 variable, and we still have some unnecessary variables, but we will retain these for a variable selection phase where they will likely be filtered out anyway
+
+# Importantly, we have a dataset with substantively relevant individual variables like political opinions, demographics, geographical information related to the outcome 'unlikely to vote' amongst a population of registered voters
+```
+
+```{r cleaning 2, eval=TRUE}
+## DATA FORMATTING AND FEATURE ENGINEERING
+
+cces_2020_full <- cces_2020_full %>% 
+# Convert all instances of 97 to NA
+  mutate_all(~ ifelse(. == 97, NA, .)) %>% 
+  # Convert birth year to age in 2020
+  mutate(birthyr = as.integer((2020 - as.integer(birthyr)))) %>% 
+  rename(age = birthyr) %>% 
+  # Convert ideology and news interest to relevant integer values, if 'dont know', convert to NA
+  mutate(ideo5 = ifelse(ideo5 == 6, NA, ideo5),
+         newsint = ifelse(newsint == 5, NA, newsint))
+
+age_input <- cces_2020_full %>% 
+  select(age)
+
+cces_2020_full <- cces_2020_full %>%
+  # Convert all variables to factors except for the ordered variables child18num, numchildren, educ, faminc_new (family income), newsint, ideo5
+  select(-c(child18num, numchildren, educ, faminc_new, ideo5, newsint, age)) %>% 
+  mutate_all(as.factor) %>%
+  # Add the ordered variables back in
+  bind_cols(select(cces_2020_full, child18num, numchildren, educ, faminc_new, newsint, ideo5)) %>% 
+  # Add age back in
+  bind_cols(age_input)
+  
+```
+
+```{r missing data, eval=TRUE}
+# Dealing with missing data
+
+cces_2020_full <- cces_2020_full %>%
+  # Remove columns with more than 90% missing values, except for student which can be reliably imputed from age and other variables
+  select(-student) %>%
+  select(-where(~ sum(is.na(.)) / length(.) > 0.9)) %>% 
+  bind_cols(select(cces_2020_full, student)) %>% 
+  # Remove rows with more than 90% missing values
+  filter(rowSums(is.na(.)) / ncol(cces_2020_full) < 0.9) %>% 
+  # If integer, replace NA with 0
+  mutate(across(where(is.integer), ~replace_na(., 0))) %>% 
+  # Add 'missing' as a level to all factor variables
+  mutate(across(where(is.factor), ~fct_explicit_na(.)))
+
+```
+
+```{r outcome formatting, eval=TRUE}
+# Put outcome as the last column
+outcome_temp <- cces_2020_full$outcome
+cces_2020_full <- cces_2020_full %>%
+  select(-outcome) %>%
+  mutate(outcome = outcome_temp)
+rm(outcome_temp)
+
+## Split into training and testing data
+set.seed(123)
+all_indices <- 1:nrow(cces_2020_full)
+all_indices <- sample(all_indices)
+training_indices <- all_indices[1:34453]
+test_indices <- all_indices[34454:nrow(cces_2020_full)]
+
+train <- cces_2020_full[training_indices,]
+train_Y <- cces_2020_full[training_indices,ncol(cces_2020_full)]
+test_X <- cces_2020_full[test_indices,-ncol(cces_2020_full)]
+test_Y <- as.vector(cces_2020_full[test_indices,ncol(cces_2020_full)])
+test_Y <- factor(test_Y)
+
+## Variable selection with random forest on a subset of the training data to use for variable selection
+fit_rf <- randomForest(outcome~., data=train[1:5000,], mtry = round(sqrt(ncol(train)-1), 0), importance=TRUE)
+#importance(fit_rf)
+
+#ordered importance of variables by accuracy decreasing
+importance_order <- order(importance(fit_rf)[,3], decreasing = TRUE)
+#importance(fit_rf)[importance_order,]
+
+# Select the top variables
+top_vars <- rownames(importance(fit_rf)[importance_order,])[1:40]
+```
+
+```{r}
+# Fit a boosted tree model with the top variables
+
+#subset the data to only include the top variables in top_vars
+cces_2020_slim <- cces_2020_full %>%
+  select(all_of(top_vars[1:40]), outcome)
+
+cces_2020_categoricals <- cces_2020_slim %>%
+  select(-outcome) %>% 
+  select(where(is.factor)) %>%
+  names()
+
+# Format into the gbm format
+training_indices <- all_indices[1:34000]
+validation_indices <- all_indices[34001:nrow(cces_2020_slim)]
+cces_2020_slim$outcome <- ifelse(as.integer(cces_2020_slim$outcome) == 1, 0, 1)
+
+# Convert the data to a matrix
+cces_gb <- lgb.convert_with_rules(data = cces_2020_slim)$data %>% as.matrix()
+
+# Training dataset
+training_dataset_gb <- lgb.Dataset(data = cces_gb[training_indices,-ncol(cces_gb)],
+                                label = cces_gb[training_indices,ncol(cces_gb)],
+                                categorical_feature = cces_2020_categoricals,
+                                params = list(verbose = -1))
+
+## Validation dataset
+validation_dataset_gb <- lgb.Dataset.create.valid(dataset = training_dataset_gb,
+                                               data = cces_gb[validation_indices,-ncol(cces_gb)],
+                                               label = cces_gb[validation_indices,ncol(cces_gb)],
+                                               params = list(verbose = -1))
+
+# test_X and test_y as matrices/vectors
+test_X_gb <- cces_gb[test_indices,-ncol(cces_gb)]
+test_Y_gb <- as.numeric(cces_gb[test_indices,ncol(cces_gb)])
+
+```
+
+
+```{r, eval = TRUE}
+# HYPARAMETER OPTIMIZATION FOR FINAL BOOSTED MODEL 
+# UTILIZE BAYESIAN OPTIMIZATION ON TRAINING DATASET
+# Hyperparameters to be optimized: learning_rate, max_depth, scale_pos_weight, num_leaves, feature_fraction, bagging_fraction
+
+# Define function to optimize
+optimize_function <- function(learning_rate, max_depth, scale_pos_weight, num_leaves, feature_fraction, bagging_fraction) {
+ # This function set ups and evaluates a LightGBM model based on the hyperparameters passed
+   params <- list(
+     objective = "binary",
+     metric = "binary_logloss",
+     learning_rate = learning_rate,
+     max_depth = as.integer(max_depth),
+     scale_pos_weight = scale_pos_weight,
+     num_leaves = as.integer(num_leaves),
+     feature_fraction = feature_fraction,
+     bagging_fraction = bagging_fraction
+  )
+  # Cross-validated model
+  cv <- lgb.cv(
+    params = params,
+    data = training_dataset_gb,
+    nfold = 5,
+    nrounds = 100,
+    early_stopping_rounds = 10,
+    verbose = -1
+  )
+  # Return the best logloss score 
+  best_logloss <- cv$best_score
+  return(list(Score = best_logloss, Pred = 0))
+}
+
+# Define bounds of parameter search space
+bounds <- list(
+  learning_rate = c(0.01, 0.2),
+  max_depth = c(3, 10),
+  scale_pos_weight = c(1, 50),
+  num_leaves = c(20, 100),
+  feature_fraction = c(0.3, 1),
+  bagging_fraction = c(0.3, 1)
+)
+
+library(rBayesianOptimization)
+#Run the Bayesian optimization
+# bayesian_opt_results_40_wider <- BayesianOptimization(
+#   FUN = optimize_function,
+#   bounds = bounds,
+#   init_points = 10,
+#   n_iter = 30,
+#   acq = "ucb", #ucb is used as ei is not working
+#   verbose = TRUE
+# )
+
+
+# Extract the best hyperparameters
+#best_hyperparameters <- bayesian_opt_results$Best_Par
+
+
+
+# Run a full model with the best hyperparameters
+# Values obtained from the Bayesian optimization
+params <- list(
+  objective = "binary",
+  metric = "binary_logloss",
+   learning_rate = 0.2000000,
+  max_depth = 3.0000000,
+  scale_pos_weight = 16.3126319,
+  num_leaves = 20.0000000,
+  feature_fraction = 0.6834939,
+  bagging_fraction = 0.7636444
+)
+
+boosted_model <- lgb.train(
+  params = params,
+  data = training_dataset_gb,
+  nrounds = 10000,
+  verbose = -1
+)
+
+# extracting the outcomes
+y_hat_prob_boost <- predict(boosted_model, test_X_gb)
+y_hat_boost <- rep(0, length(y_hat_prob_boost))
+y_hat_boost[y_hat_prob_boost>0.5] <- 1
+
+```
+
+
+```{r, eval = FALSE}
+# EVALUATION
+
+# Baseline model
+baseline_y_hat <- rep(0, length(test_Y))
+confusionMatrix(data = test_Y, reference = factor(baseline_y_hat, levels = c("0","1")), positive = "1")
+
+## Boosted model
+confusionMatrix(data = test_Y, reference = factor(y_hat_boost), positive = "1")
+
+# AUC
+roc(test_Y_gb, y_hat_prob_boost)
+```
+
+## Question 1
+
+I confirm that I have predicted the test outcomes, ensured they are in the right format, and submitted these separately on Moodle as required.
+
+## Question 2
+
+### Modeling strategy
+
+The purpose of my prediction model is to identify registered voters that are unlikely to go the polls on election day in 2024. These individuals are the target population for a get-out-the-vote initiative on election day. 
+
+#### Data selection
+
+The model's training data is the USA 2020 cooperative election study (CES). This year is chosen as the most recent presidential election year which generalizes to the 2024 presidential election. The 2022 study data was rejected as voter turnout patterns are distinct in midterm election year compared to presidential ones (Romero and Romero, 2021). Further, 2020 saw the front-runners Biden and Trump, a match-up set to be repeated in 2024, making the 2020 election uniquely relevant to the 2024 year. 
+
+CES survey data provides a rich source of personal demographic and opinion-based information individually related to each individual's intention to vote. All non-registered voters were removed from the data sample as they would be ineligible to vote on election day, and would be a waste of time for the organization to target. 
+
+#### Dataset construction
+
+An binary outcome variable is constructed, indicating if a registered voter either 'did not intend to vote' or was 'undecided on voting' when surveyed before the 2020 election. 3.82% of 43,039 surveyed voters fell into this category, generating the model's positive class.
+
+717 survey variables were reduced to 292 based on the criteria of reducing co-linearity, redundancy and variables with excessive missing values, and to remove variables directly related to voter turnout as this would've circumvented the purpose of the prediction task. Following this, a large but substantively meaningful basket of variables was retained for the model to evaluate. Variable with few missing values were imputed using the median of the variable, while most variables received a 'missing' factor category to maintain data integrity.
+
+These 292 variables went through a feature selection process that utilized a random forest algorithm on 20,000 points of data to predict turnout. The top 40 variables, as measured by their mean decrease on accuracy when that variable is permuted (Molnar, 2019), were selected as the most significant predictors. 40 variables is chosen as a balance between model accuracy and complexity (James et al, 2023), as well as the practicality of data collection. Collecting these 40 variables is challenging but most can be collecting in batches from public records, personal data or external survey data. The variables are listed in the Figure 1 forest plot below. 
+
+```{r var_imp_plot, fig.width=10, fig.height=10, eval=TRUE}
+importance_data <- importance(fit_rf, n.var = 40, type=1)
+importance_df <- data.frame(Variable = rownames(importance_data), Importance = importance_data[, "MeanDecreaseAccuracy"])
+importance_df <- importance_df[order(importance_df$Importance, decreasing = TRUE), ][1:40, ]
+
+# Create a dictionary as provided
+variable_dictionary <- list(
+  votereg = "Respondent's believed voter registration status",
+  pid3 = "3-Point Party Identification",
+  CC20_340c = "Job Approval for Congress",
+  CC20_340e = "Job Approval for the Supreme Court",
+  ideo5 = "Ideological Self-placement",
+  state = "Respondent's State",
+  CC20_340b = "Job Approval for President",
+  CC20_340a = "Job Approval for Governor",
+  CC20_360 = "Political Party Registration",
+  CC20_320a = "Approval of Local Police",
+  pid7 = "7-Point Party Identification Scale",
+  age = "Respondent's Age",
+  edloan = "Student Loan Debt Status",
+  CC20_367 = "House Candidate Preference",
+  CC20_340h = "Approval of the United Nations",
+  CC20_320f = "Approval of the Environmental Protection Agency",
+  CC20_310d = "Knowledge of Party Control: State Senate",
+  CC20_433a = "3-Point Party ID Expanded",
+  CC20_441a = "Racial Attitude to Blacks",
+  presvote16 = "2016 Presidential Vote",
+  CC20_311a = "Awareness of Government Officials",
+  CC20_320g = "Approval of Congress",
+  CC20_356a = "Opinion on Supreme Court Nomination Timing",
+  CC20_440d = "Opinion on Defense Spending",
+  CC20_340d = "Approval of State Government",
+  CC20_340l = "Approval of Local Government",
+  CC20_443_4 = "Opinions on Public Health Issues",
+  newsint = "Interest in News",
+  party = "Political Party Affiliation",
+  CC20_350g = "Opinion on Government Spending in General",
+  industryclass = "Industry Classification",
+  CC20_310c = "Knowledge of Party Control: U.S. Senate",
+  CC20_310a = "Knowledge of Party Control: U.S. House",
+  CC20_320h = "Approval of Health and Human Services",
+  GovCand1Name = "State Governor",
+  milstat_3 = "Military Status of Respondent",
+  CC20_340i = "Approval of the Education System",
+  CC20_310b = "Knowledge of Party Control: Lower State Chamber",
+  CC20_421r_dk_flag = "Unsure Responses to District Knowledge",
+  CC20_311b = "Awareness of Local Government Officials"
+)
+
+importance_df$Variable <- sapply(importance_df$Variable, function(x) {
+    if (!is.null(variable_dictionary[[x]])) {
+        variable_dictionary[[x]]
+    } else {
+        x  # Return the original name if it's not found in the dictionary
+    }
+})
+
+# Plot using ggplot2 for better control over aesthetics
+ggplot(importance_df, aes(x = reorder(Variable, Importance), y = Importance)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +  # Flip coordinates for horizontal layout
+  theme_minimal() +
+  labs(title = "Figure 1: Variable Importance in Predicting Voter Turnout",
+       x = "Variable", y = "Mean Decrease in Accuracy - Random Forest Model")
+```
+
+Through balancing accuracy with model simplicity on unseen testing data, it was determined that 40 variables increases model accuracy without over fitting to the training data from excessive complexity. Worth noting, LASSO was not used as a feature selection method as it is not as effective as random forest in the presence of correlated variables (James et al, 2023).
+
+Viewing the most predictive variables indicates their practical and largely uncorrelated nature, each can be substantively interpreted and posed as a question on a survey, or gather from data online or on public records.
+
+#### Final model
+
+The final prediction model is a gradient boosting machine (GBM) model with hyper parameters that were tuned using Bayesian optimization to find optimal positive class reweighing, learning rate and bagging parameters to maximize out-of-bag prediction accuracy. 5-fold cross validation was used during hyperparameter optimization to prevent overfitting to training data. There is high confidence in the model's hyperparameters as Bayesian optimization was repeated 10 times to ensure the model was not stuck in a local minima. 
+
+Furthermore, alternative models were tested, including random forest, with bagging and no bagging, as well as logistic regression. The GBM model outperformed all other models in terms of sensitivity and overall accuracy after hyperparameter tuning.
+
+The final model was trained on 80% of the data, or over 32,000 points of data. 
+
+### Evaluation
+
+The most pertinent evaluation metric measures the model's ability to correctly identify the positive class, the non-voters, as this determines whether the organization's efforts on election day actually reach their target audience. This metric is captured by the model's sensitivity, its true positive rate, which performs at 64.56% on the unseen testing data. This suggests that a non-voter identified by the model will be a non-voter in reality 64.56% of the time, with a 95% confidence interval of [58.7%, 70.1%]. 
+
+The confusion matrix of the model is listed here in Figure 2.
+
+```{r confusion_matrix, eval = TRUE}
+
+library(caret)
+
+# Setup data (assuming test_Y and y_hat_boost are already defined and correctly factored)
+conf_matrix <- confusionMatrix(data = factor(y_hat_boost), reference = test_Y, positive = "1")
+
+# Extract sensitivity and calculate its 95% confidence interval
+sensitivity <- conf_matrix$byClass['Sensitivity']
+true_positives <- conf_matrix$table[2, 2]
+false_negatives <- conf_matrix$table[2, 1]
+total_positives <- true_positives + false_negatives
+
+# Confidence interval calculation
+sensitivity_ci <- binom.test(x = true_positives, n = total_positives, conf.level = 0.95)$conf.int
+
+# Print results
+cat(sprintf("95%% Confidence Interval for Sensitivity: [%.3f, %.3f]\n", sensitivity_ci[1], sensitivity_ci[2]))
+
+
+# Extract the confusion matrix table
+cm_table <- conf_matrix$table
+
+# Convert the matrix to a data frame
+cm_df <- as.data.frame(cm_table)
+
+# Add row and column names to the data frame for clarity
+cm_df$Prediction <- rownames(cm_table)
+colnames(cm_df)[1:ncol(cm_table)] <- c("Reference: Negative", "Reference: Positive")
+
+print(cm_df)
+
+```
+
+Figure 2 indicates that while the model has frequent false positives and false negatives, overall it is able to perform fit to the task, and correctly identifies non-voters a majority of the time, which is certainly not a straightforward task in this environment of extreme class imbalance (3.36%).
+
+### Conclusion
+
+The final model can deliver a useful predictive performance on a comparatively small set of personal variables that can be collected without excessive expense through available public or personal data, or in batches through surveying. The organization can expect to reach many presumptive non-voters on election day given the model's sensitivity of 64.56%.
+
+
+## Appendix A: All code in this assignment
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
+
+## QUESTION 1 CODE BELOW
+
+# Convert all character variables to factor
+data <- data %>% 
+  mutate(across(where(is.character), as.factor))
+
+# Impute missing values using missForest algorithm
+data <- missForest(data, maxiter = 10, ntree = 100)[[1]]
+
+# One-hot encoding for categorical variables (factor variables)
+data <- dummy_cols(data, select_columns = names(Filter(is.factor, data)), remove_first_dummy = TRUE)
+
+# Remove the original factor columns if they were not automatically removed
+data <- data[, !names(data) %in% names(Filter(is.factor, data))]
+
+# Turn columns 57 to 88 into factors - not the outcome - which is at index 56
+data[, 57:89] <- lapply(data[, 57:89], as.factor)
+
+# Standardize the data
+data <- data %>% 
+  select(1:55) %>% # all numerical columns
+  mutate(across(everything(), scale)) %>% 
+  bind_cols(data %>% select(56:ncol(data)))
+
+# rename the y variable "outcome"
+data <- data %>% rename(outcome = y)
+
+# Split the data into training and testing
+set.seed(400)
+all_indices <- 1:nrow(data)
+all_indices <- sample(all_indices)
+training_indices <- all_indices[1:800]
+test_indices <- all_indices[801:1000]
+
+# Data set split
+train <- data[training_indices,]
+train_Y <- data[training_indices,56]
+test_X <- data[test_indices,-56]
+test_Y <- as.vector(data[test_indices,56])
+test_Y <- factor(test_Y)
+
+# Making the label a factor for the randomForest package
+train$outcome <- factor(train$outcome)
+
+# Find best boosted forest model
+
+## Firstly redefine the data sets indices for a validation set
+training_indices <- all_indices[1:800]
+
+# Do some formatting changes to fit the lightgbm package
+dataset_gb <- data %>% mutate(across(1:55, as.numeric))
+dataset_gb <- dataset_gb %>% mutate(across(57:89, as.integer))
+dataset_gb <- dataset_gb %>% mutate(across(57:89, ~ifelse(.x == 1, 1, 0)))
+dataset_gb <- lgb.convert_with_rules(data = dataset_gb)$data %>% as.matrix()
+
+# Store the categorical variables
+categoricals <- colnames(dataset_gb)[57:ncol(dataset_gb)]
+
+# Creating training and validation data sets
+training_dataset_gb <- lgb.Dataset(data = dataset_gb[training_indices,-56],
+                                label = dataset_gb[training_indices,56],
+                                categorical_feature = categoricals,
+                                params = list(verbose = -1))
+
+# test_X and test_y as matrices/vectors
+test_X_gb <- dataset_gb[test_indices,-56]
+test_Y_gb <- as.numeric(dataset_gb[test_indices,56])
+
+# Finding a optimal model hyperparameters using Bayesian optimization and cross-validation
+
+# Hyperparameters to be optimized: learning_rate, max_depth, scale_pos_weight, num_leaves, feature_fraction
+# Note: scale_pos_weight included to find the optimal weight for the imbalanced positive-label data
+
+# Define function to optimize
+optimize_function <- function(learning_rate, max_depth, scale_pos_weight, num_leaves, feature_fraction) {
+ # This function set ups and evaluates a LightGBM model based on the hyperparameters passed
+   params <- list(
+     objective = "binary",
+     metric = "binary_logloss",
+     learning_rate = learning_rate,
+     max_depth = as.integer(max_depth),
+     scale_pos_weight = scale_pos_weight,
+     num_leaves = as.integer(num_leaves),
+     feature_fraction = feature_fraction
+  )
+  # Cross-validated model
+  cv <- lgb.cv(
+    params = params,
+    data = training_dataset_gb,
+    nfold = 5,
+    nrounds = 100,
+    early_stopping_rounds = 10,
+    verbose = -1
+  )
+  # Return the best logloss score 
+  best_logloss <- cv$best_score
+  return(list(Score = -best_logloss, Pred = 0))
+}
+
+# Define bounds of parameter search space
+bounds <- list(
+  learning_rate = c(0.01, 0.2),
+  max_depth = c(3, 10),
+  scale_pos_weight = c(1, 5),
+  num_leaves = c(20, 100),
+  feature_fraction = c(0.5, 1)
+)
+
+# Run the Bayesian optimization
+# bayesian_opt_results <- BayesianOptimization(
+#   FUN = optimize_function,
+#   bounds = bounds,
+#   init_points = 10, 
+#   n_iter = 30,
+#   acq = "ei",
+#   verbose = TRUE
+# )
+
+
+# Extract the best hyperparameters
+best_hyperparameters <- bayesian_opt_results$Best_Par
+
+# Run a full model with the best hyperparameters
+params <- list(
+  objective = "binary",
+  metric = "binary_logloss",
+  learning_rate = best_hyperparameters[1],
+  max_depth = as.integer(best_hyperparameters[2]),
+  scale_pos_weight = best_hyperparameters[3],
+  num_leaves = as.integer(best_hyperparameters[4]),
+  feature_fraction = best_hyperparameters[5]
+)
+
+boosted_model <- lgb.train(
+  params = params,
+  data = training_dataset_gb,
+  nrounds = 10000,
+  verbose = -1
+)
+
+# extracting the outcomes
+y_hat_prob_boost <- predict(boosted_model, test_X_gb)
+y_hat_boost <- rep(0, length(y_hat_prob_boost))
+y_hat_boost[y_hat_prob_boost>0.5] <- 1
+
+### Confusion Matrices
+## Baseline
+print("baseline")
+confusionMatrix(data = test_Y, reference = y_hat_simple, positive = "1")
+
+## Bagging
+print("bagging")
+confusionMatrix(data = test_Y, reference = y_hat_bag, positive = "1")
+
+## Random forest
+print("random forest")
+confusionMatrix(data = test_Y, reference = y_hat_rf, positive = "1")
+
+## Boosted model
+print("boosted model")
+confusionMatrix(data = test_Y, reference = factor(y_hat_boost), positive = "1")
+
+### ROC Curves
+## Baseline
+roc(test_Y, rep(0, nrow(test_X)))
+
+## Bagging
+roc(test_Y, y_hat_bag_prob)
+
+## Random forest
+roc(test_Y, y_hat_rf_prob)
+
+## Boosted model
+roc(test_Y_gb, y_hat_prob_boost)
+
+
+
+```
+
+## Appendix B: Alternative Model Testing Code
+
+```{r, eval = FALSE}
+# Find best bagging model
+fit_bag <- randomForest(outcome~., data=train, mtry = (ncol(train)-1), importance=TRUE)
+y_hat_bag_prob <- predict(fit_bag, newdata = test_X, type="prob")[,2]
+y_hat_bag <- predict(fit_bag, newdata = test_X, type="response")
+
+# Find best random forest model
+fit_rf <- randomForest(outcome~., data=train, mtry = round(sqrt(ncol(train)-1), 0), importance=TRUE)
+y_hat_rf_prob <- predict(fit_rf, newdata = test_X, type="prob")[,2]
+y_hat_rf <- predict(fit_rf, newdata = test_X, type="response")
+```
+
+
+## Bibliography
+
+Christoph Molnar (2019). Interpretable machine learning : a guide for making Black Box Models interpretable. Morisville, North Carolina: Lulu.
+
+James, G., Witten, D., Hastie, T., Tibshirani, R. and Taylor, J. (2023). An Introduction to Statistical Learning. Springer Nature.
+
+Romero, F.S. and Romero, D.W. (2021). National Presidential Election Turnout: 1952 to 2020. American Politics Research, p.1532673X2110318. doi:https://doi.org/10.1177/1532673x211031816.
+
+

@@ -1,0 +1,453 @@
+---
+title: "MY_461_Final"
+author: '29189'
+date: "2024-05-01"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(igraph)
+library(tidyverse)
+library(scales)
+
+# Load the RData file
+load("37070-0001-32.RData")
+
+# Extract the networks
+spendtime_w2 <- get("spendtime_w2")
+bestfriend_w2 <- get("bestfriend_w2")
+conflict_w2 <- get("conflict_w2")
+```
+
+### Question 1
+
+```{r q1p1}
+# Function to calculate specified network metrics
+metrics <- function(network) {
+  list(
+    density = edge_density(network),
+    mean_degree = mean(degree(network)),
+    average_path_length = average.path.length(network, directed = TRUE),
+    transitivity = transitivity(network, type = "global"),
+    reciprocity = reciprocity(network)
+  )
+}
+
+# Calculate metrics for each network
+metrics_spendtime_w2 <- metrics(spendtime_w2)
+metrics_bestfriend_w2 <- metrics(bestfriend_w2)
+metrics_conflict_w2 <- metrics(conflict_w2)
+
+# Generate a configuration model for each network
+set.seed(124)
+spendtime_w2_ran <- sample_degseq(out.deg = degree(spendtime_w2, mode='out'), in.deg = degree(spendtime_w2, mode = 'in'), method = "simple")
+bestfriend_w2_ran <- sample_degseq(out.deg = degree(bestfriend_w2, mode='out'), in.deg = degree(bestfriend_w2, mode = 'in'), method = "simple")
+conflict_w2_ran <- sample_degseq(out.deg = degree(conflict_w2, mode='out'), in.deg = degree(conflict_w2, mode = 'in'), method = "simple")
+
+# Calculate metrics for each randomized network
+metrics_spendtime_w2_ran <- metrics(spendtime_w2_ran)
+metrics_bestfriend_w2_ran <- metrics(bestfriend_w2_ran)
+metrics_conflict_w2_ran <- metrics(conflict_w2_ran)
+
+# Create a dataframe to compare metrics for each empirical network to its randomized one, with 6 rows one for each network
+comparison <- data.frame(
+  Network = c("Spend Time W2","Random Spend Time", "Best Friend W2","Random Best Friend", "Conflict W2", "Random Conflict"),
+  Density = c(metrics_spendtime_w2$density, metrics_spendtime_w2_ran$density, metrics_bestfriend_w2$density, metrics_bestfriend_w2_ran$density, metrics_conflict_w2$density, metrics_conflict_w2_ran$density),
+  Mean_Degree = c(metrics_spendtime_w2$mean_degree, metrics_spendtime_w2_ran$mean_degree, metrics_bestfriend_w2$mean_degree, metrics_bestfriend_w2_ran$mean_degree, metrics_conflict_w2$mean_degree, metrics_conflict_w2_ran$mean_degree),
+  Average_Path_Length = c(metrics_spendtime_w2$average_path_length, metrics_spendtime_w2_ran$average_path_length, metrics_bestfriend_w2$average_path_length, metrics_bestfriend_w2_ran$average_path_length, metrics_conflict_w2$average_path_length, metrics_conflict_w2_ran$average_path_length),
+  Transitivity = c(metrics_spendtime_w2$transitivity, metrics_spendtime_w2_ran$transitivity, metrics_bestfriend_w2$transitivity, metrics_bestfriend_w2_ran$transitivity, metrics_conflict_w2$transitivity, metrics_conflict_w2_ran$transitivity),
+  Reciprocity = c(metrics_spendtime_w2$reciprocity, metrics_spendtime_w2_ran$reciprocity, metrics_bestfriend_w2$reciprocity, metrics_bestfriend_w2_ran$reciprocity, metrics_conflict_w2$reciprocity, metrics_conflict_w2_ran$reciprocity))
+
+print(comparison)
+
+```
+
+```{r q1p2}
+# Function to get degree frequencies and prepare data frame
+get_degrees <- function(network, type, network_name) {
+  # Calculate the degree
+  deg <- degree(network, mode = type)
+  deg_freq <- table(deg)
+  df <- as.data.frame(deg_freq)
+  names(df) <- c("Degree", "Count")
+  
+  # Add a column for degree type (in or out) and network name
+  df$Type <- type
+  df$Network <- network_name
+  
+  return(df)
+}
+
+# Calculate degrees for each network and type, adding network labels
+spendtime_w2_in <- get_degrees(spendtime_w2, "in", "Spend Time W2")
+spendtime_w2_out <- get_degrees(spendtime_w2, "out", "Spend Time W2")
+bestfriend_w2_in <- get_degrees(bestfriend_w2, "in", "Best Friend W2")
+bestfriend_w2_out <- get_degrees(bestfriend_w2, "out", "Best Friend W2")
+conflict_w2_in <- get_degrees(conflict_w2, "in", "Conflict W2")
+conflict_w2_out <- get_degrees(conflict_w2, "out", "Conflict W2")
+
+# Combine all data for plotting
+all_degrees <- rbind(spendtime_w2_in, spendtime_w2_out, bestfriend_w2_in, bestfriend_w2_out, conflict_w2_in, conflict_w2_out)
+
+# Plotting using ggplot2 with facets
+ggplot(all_degrees, aes(x = as.numeric(Degree), y = Count)) + 
+  geom_bar(stat = "identity", fill = "steelblue") +
+  facet_grid(Network ~ Type, scales = "free_x") +
+  theme_minimal() +
+  labs(x = "Degree", y = "Frequency") +
+  theme(plot.title = element_text(hjust = 0.5), axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  ggtitle("Fig 1: In and Out Degree Distributions Empirical vs. Random Networks")
+```
+
+The configuration model is the most suitable for comparison due to its preservation of the empirical networks' degree distribution. This feature is crucial as it maintains a realistic structure of the empirical network derived from survey questions with set limits of possible responses. Alternatives like Small Worlds or Erdös-Rényi have fewer controls on degree distribution (McLevey et al, 2023), and could, for instance, generate nodes with 3 or more outgoing edges in the best_friend network, contradicting the survey constraints.   
+
+Density and mean degree remain constant in random configuration models (McLevey et al, 2023). Attributes are interpreted as:
+
+* Density: proportion of possible connections observed in the network.
+* Mean Degree: the average number of edges per node
+* Average Path Length: the average shortest path between all pairs of nodes in the network.
+* Transitivity: the proportion of transitive A to C connections when A connects to B and C connects to B (global clustering measure)
+* Reciprocity: the proportion of mutual connections observed
+
+These metrics suggest insights into school socialization. In the spendtime network, increased reciprocity and transitivity with the randomized baseline suggest that student friendships tend to be mutual and form clusters, where friends of friends are also likely to be friends. While the increase in path length indicates that acquaintances or weak friends are not as interconnected as we might expect based on probability alone. 
+
+The bestfriend network shows a similar increase in reciprocity and transitivity by a large multiple, suggesting that strong friendships are even more likely to form into clusters, and be reciprocated as best friend ties are often mutual. Lower path length indicates that, despite clustering, best friends are surprisingly more interconnected than would be expected by chance, suggesting a higher-than-expected rate of out-group connections in forming close friendships.
+
+The conflict network similarly shows higher reciprocity and transitivity, suggesting high mutual conflict and clusting into conflict-prone social groups. Lower path length further suggests patterns of conflict spread are more far-reaching than we might expect, jumping across conflict-prone groups. 
+
+The range of the out-degree is the number of possible responses permitted by the survey questions. In-degree's range is not artificially capped since students can be selected by multiple peers, identifying more 'popular' or 'conflict-prone' individuals. It is also likely that students felt internal social pressure to list many friends, leading to the right-weighted spike in best_friend and spend_time out degree (Paluchek et al, 2016). 
+
+In-degree distributions are generally left-skewed, indicating that most students are not frequently chosen in others' surveys. This skewness suggests that students are selective about whom they spend time with, whom they consider best friends, and with whom they engage in conflicts.
+
+The out-degree distributions spike at the high end of the range, suggest that while students may be selective about their close relationships, they list a broader range of acquaintances when asked about general spending time than best friendships. Some students have no best friend or spend time connections, indicating that socialization often exists in positive or negative extremes in schools.
+
+### Question 2
+```{r q2p1, fig.width=10, fig.height=10}
+# Plot the two waves of the spendtime and conflict networks (spendtime_w1, spendtime_w2; conflict_w1, conflict_w2), with nodes sized by your chosen centrality measure
+
+# Set some mapping parameters
+dlayout <- layout_nicely(spendtime_w1) # change layout, look at options with help(layout_)
+
+# Check unique grades
+unique_grades <- unique(V(spendtime_w1)$Grade)
+# Create a color palette
+color_palette <- rainbow(length(unique_grades))
+# Create a named vector to map grades to colors
+grade_colors <- setNames(color_palette, unique_grades)
+
+# Spend time networks
+# Wave 1
+plot(spendtime_w1,
+     vertex.color = grade_colors[V(spendtime_w1)$Grade],
+     vertex.size = rescale(page_rank(spendtime_w1)$vector, c(1,8)), 
+     edge.arrow.size = 0.15, 
+     edge.width = 0.4, 
+     vertex.label = NA, 
+     layout = dlayout)
+legend("topright", 
+         legend = as.character(unique_grades), 
+         col = grade_colors[unique_grades], 
+         pch = 19)
+title("Fig 2: Spendtime W1 - PageRank Centrality")
+text(-1.5, 1.5, "Nodes sized by pagerank centrality", cex = 1.5, font = 2, col = "black")
+
+# Wave 2
+plot(spendtime_w2,
+     vertex.color = grade_colors[V(spendtime_w2)$Grade],
+     vertex.size = rescale(page_rank(spendtime_w2)$vector, c(1,8)), 
+     edge.arrow.size = 0.15, 
+     edge.width = 0.4, 
+     vertex.label = NA, 
+     layout = dlayout)
+legend("topright", 
+         legend = as.character(unique_grades), 
+         col = grade_colors[unique_grades], 
+         pch = 19)
+title("Fig 3: Spendtime W2 - PageRank Centrality")
+text(-1.5, 1.5, "Nodes sized by pagerank centrality", cex = 1.5, font = 2, col = "black")
+
+
+
+# Conflict networks
+# Wave 1
+# Calculate betweenness centrality and handle NA values
+betweenness_values <- betweenness(conflict_w1)
+betweenness_values[is.na(betweenness_values)] <- min(betweenness_values, na.rm = TRUE)
+
+# Rescale for plotting
+scaled_betweenness <- rescale(betweenness_values, c(1, 8))
+
+plot(conflict_w1,
+     vertex.color = grade_colors[V(conflict_w1)$Grade],
+     vertex.size = scaled_betweenness, 
+     edge.arrow.size = 0.15, 
+     edge.width = 0.4, 
+     vertex.label = NA, 
+     layout = dlayout)
+legend("topright", 
+         legend = as.character(unique_grades), 
+         col = grade_colors[unique_grades], 
+         pch = 19)
+title("Fig 4: Conflict W1 - Betweenness Centrality")
+text(-1.5, 1.5, "Nodes sized by betweenness centrality", cex = 1.5, font = 2, col = "black")
+
+
+# Wave 2
+# Calculate betweenness centrality and handle NA values
+betweenness_values <- betweenness(conflict_w2)
+betweenness_values[is.na(betweenness_values)] <- min(betweenness_values, na.rm = TRUE)
+scaled_betweenness <- rescale(betweenness_values, c(1, 8))
+
+plot(conflict_w2,
+     vertex.color = grade_colors[V(conflict_w2)$Grade],
+     vertex.size = scaled_betweenness, 
+     edge.arrow.size = 0.15, 
+     edge.width = 0.4, 
+     vertex.label = NA, 
+     layout = dlayout)
+legend("topright", 
+         legend = as.character(unique_grades), 
+         col = grade_colors[unique_grades], 
+         pch = 19)
+# add title
+title("Fig 5: Conflict W2 - Betweenness Centrality")
+```
+
+```{r q2p2}
+## Do the correlation between centrality measures
+
+## in-degree - spendtime
+print("In-degree - spendtime_w1 and spendtime_w2")
+cor(degree(spendtime_w1,mode = "in"), degree(spendtime_w2, mode="in"))
+
+## in-degree - conflict
+print("In-degree - conflict_w1 and conflict_w2")
+cor(degree(conflict_w1,mode = "in"), degree(conflict_w2, mode="in"))
+
+# pagerank - spendtime
+print("Pagerank - spendtime_w1 and spendtime_w2")
+cor(page_rank(spendtime_w1)$vector, page_rank(spendtime_w2)$vector)
+
+# betweenness - conflict
+print("Betweenness - conflict_w1 and conflict_w2")
+cor(betweenness(conflict_w1),betweenness(conflict_w2))
+```
+
+```{r q2p3}
+# Correlation between conflict and spend time networks
+
+# In degree
+print("In-degree - spendtime_w1 and conflict_w1")
+cor(degree(spendtime_w1,mode = "in"), degree(conflict_w1, mode = "in"))
+print("In-degree - spendtime_w2 and conflict_w2")
+cor(degree(spendtime_w2, mode = "in"), degree(conflict_w2, mode = "in"))
+
+```
+
+For the conflict networks, betweenness centrality was chosen to capture students' roles as mediators or central figures in conflicts. This measure is crucial as students with high betweenness act as bridges in conflict spread, making them strategic targets for conflict resolution interventions. This metric illustrates the extent to which students influence the spread or resolution of disputes, serving as gatekeepers within the conflict network.
+
+In-degree alone captures different aspects of influence in each network:
+
+* Spend time: In-degree measures how often the student is chosen as another student's social connection, acting as a measure of social 'popularity'
+* Conflict: In-degree measures how often a student is listed on conflict lists, indicating how conflict-prone a student is
+
+Given this, for the spendtime network, pagerank centrality was selected to complement in-degree by highlighting not just popularity but the influence derived from being connected to other well-connected peers. High pagerank centrality identifies students as influential social referents, to borrow the original paper's term (Paluck et al, 2016), who are individuals that impact school social norms and behaviors by serving as guiders of behavior. pagerank reasonably captures this niche, providing insights into the broader influence a student has within the social fabric of the school, beyond number of direct interactions.
+
+In figures 2-5, neither centrality measure is particularly stable, and betweenness centrality changes significantly in the conflict network, suggesting that instigator/gatekeeping roles change as the year develops. The number of large nodes also increases, so conflict-prone students likely grow into their roles over time. Notably, eighth grade is much less prone to developing these mediator roles, possibly as conflict is more common in younger students, and spread more easily.  
+
+Correlation results across waves suggests highest change is in the conflict network (with the lowest correlation), but correlation is never higher than 0.59, so both centrality measures are capturing real change occuring in students' social influence roles. 
+
+Correlation between in-degrees in spendtime and conflict networks is low, indicating minimal overlap between students' popularity and their conflict-prone nature. A slight positive trend exists in wave 1 but this disappears in wave 2, so it is not a consistent association.
+
+These trends suggests that the school year brings significant changes for the socialization patterns of students. While some roles remain stable, the norm is for change, and students likely change themselves as the year progresses, affecting their broader role as social referents or conflict mediators. It is also valuable to note that popular students are not necessarily more conflict-prone, and conflict scenarios can develop in complex, non-linear ways (Palucheck et al, 2016).  
+
+
+### Question 3
+
+```{r}
+# Convert the above into a table of Age, Gender and Grade assortativity
+assortativity_table <- data.frame(
+  Network = c("Spendtime W1", "Spendtime W2", "Best Friend W1", "Best Friend W2", "Conflict W1", "Conflict W2"),
+  Gender_Assortativity = c(
+    assortativity_nominal(spendtime_w1, factor(V(spendtime_w1)$Gender)),
+    assortativity_nominal(spendtime_w2, factor(V(spendtime_w2)$Gender)),
+    assortativity_nominal(bestfriend_w1, factor(V(bestfriend_w1)$Gender)),
+    assortativity_nominal(bestfriend_w2, factor(V(bestfriend_w2)$Gender)),
+    assortativity_nominal(conflict_w1, factor(V(conflict_w1)$Gender)),
+    assortativity_nominal(conflict_w2, factor(V(conflict_w2)$Gender))
+  ),
+  Grade_Assortativity = c(
+    assortativity_nominal(spendtime_w1, factor(V(spendtime_w1)$Grade)),
+    assortativity_nominal(spendtime_w2, factor(V(spendtime_w2)$Grade)),
+    assortativity_nominal(bestfriend_w1, factor(V(bestfriend_w1)$Grade)),
+    assortativity_nominal(bestfriend_w2, factor(V(bestfriend_w2)$Grade)),
+    assortativity_nominal(conflict_w1, factor(V(conflict_w1)$Grade)),
+    assortativity_nominal(conflict_w2, factor(V(conflict_w2)$Grade))
+  ),
+  Age_Assortativity = c(
+    assortativity(spendtime_w1, as.numeric(V(spendtime_w1)$Age)),
+    assortativity(spendtime_w2, as.numeric(V(spendtime_w2)$Age)),
+    assortativity(bestfriend_w1, as.numeric(V(bestfriend_w1)$Age)),
+    assortativity(bestfriend_w2, as.numeric(V(bestfriend_w2)$Age)),
+    assortativity(conflict_w1, as.numeric(V(conflict_w1)$Age)),
+    assortativity(conflict_w2, as.numeric(V(conflict_w2)$Age))
+  )
+)
+
+assortativity_table
+```
+
+```{r}
+# Part 2
+# Remove isolates
+spendtime_w2_no_iso <- delete_vertices(spendtime_w2, which(degree(spendtime_w2) == 0))
+conflict_w2_no_iso <- delete_vertices(conflict_w2, which(degree(conflict_w2) == 0))
+
+community_spendtime <- cluster_leading_eigen(spendtime_w2_no_iso)
+community_conflict <- cluster_leading_eigen(conflict_w2_no_iso)
+
+colors <- rainbow(max(membership(community_spendtime)))
+node_colors <- colors[membership(community_spendtime)]
+
+plot(community_spendtime, 
+    spendtime_w2_no_iso, 
+    vertex.color = node_colors, vertex.size = 5,
+    vertex.frame.color = NA,
+    vertex.label = NA,  
+    main = "Spendtime W2 Communities",
+    edge.arrow.size = 0.1, 
+    edge.width = 0.1,
+    edge.color = "gray50",
+    layout = layout_with_fr) 
+
+colors <- rainbow(max(membership(community_conflict)))
+node_colors <- colors[membership(community_spendtime)]
+
+plot(community_conflict, 
+    conflict_w2_no_iso, 
+    vertex.color = node_colors, vertex.size = 5,
+    vertex.frame.color = NA,
+    vertex.label = NA,  
+    main = "Conflict W2 Communities",
+    edge.arrow.size = 0.1, 
+    edge.width = 0.1,
+    edge.color = "gray50",
+    layout = layout_with_fr)
+
+# Associations between community membership and node attributes
+# For the spendtime network
+nmi_gender_spendtime <- compare(V(spendtime_w2_no_iso)$Gender, community_spendtime$membership, method = "nmi")
+nmi_grade_spendtime <- compare(V(spendtime_w2_no_iso)$Grade, community_spendtime$membership, method = "nmi")
+nmi_age_spendtime <- compare(V(spendtime_w2_no_iso)$Age, community_spendtime$membership, method = "nmi")
+
+# For the conflict network
+nmi_gender_conflict <- compare(V(conflict_w2_no_iso)$Gender, community_conflict$membership, method = "nmi")
+nmi_grade_conflict <- compare(V(conflict_w2_no_iso)$Grade, community_conflict$membership, method = "nmi")
+nmi_age_conflict <- compare(V(conflict_w2_no_iso)$Age, community_conflict$membership, method = "nmi")
+
+# Create a data frame to organize these values into a table
+nmi_table <- data.frame(
+  Community_Membership_Association_NMI = c("Gender", "Grade", "Age"),
+  Spendtime_Network_W2 = c(nmi_gender_spendtime, nmi_grade_spendtime, nmi_age_spendtime),
+  Conflict_Network_W2 = c(nmi_gender_conflict, nmi_grade_conflict, nmi_age_conflict)
+)
+
+nmi_table
+```
+
+Overall, the assortativity coefficients indicate that being in the same grade, having a similar age, and being of the same gender are all positively associated with developing friendships and entering conflicts between students (Scott, 2017). Students tend to socialize and be in conflict with others who are similar to them in terms of these attributes. 
+
+Interestingly, gender assortativity, while remaining relatively high, slightly diminishes over the course of the school year, indicated by a decrease in its coefficient from wave 1 to wave 2 in all three networks. This suggests that students may become more open to socializing and entering conflicts with students of the opposite gender as the school year progresses, indicating a slight broadening of social circles and interactions to all other students, not just those of the same gender. 
+
+However, this does not hold true for grade assortativity, which universally increases over the school year. This is likely due to the structured nature of socialization in schools, as students interact more frequently with those in the same grade due to shared classes and activities. It is natural that they would spend more with and enter more conflicts with those in the same grade over time.
+
+Age assortativity remains stable or slightly increases over the school year, indicating that students continue to socialize and enter conflicts with others of similar age throughout the school year. The difference is notably smaller than for grade, and given that grade and age are strongly correlated, it is likely that grade assortativity is driving the age assortativity results, especially considering the structural role that grade plays in school-settings.
+
+However, it is important to note that the differences in assortativity coefficients between the two waves are relatively small, indicating that broad patterns of socialization and conflict remain consistent over the course of the school year. Assortativity also cannot be intrepreted as causation, but rather as an assoication of tendency to form connections with those of similar attributes. Assortativity also has no direct substantive interpretation related to likelihood of tie formation. 
+
+Also worth noting, is that an assortativity of 0.79 is quite high in practice. So gender is having a particularly strong socialization effect within these schools. This is intuitive, as elementary and middle school aged students often form social ties based on gender (Palucheck et al, 2016). 
+
+The normalised mutual information (NMI) for the wave 2 spendtime and conflict networks with community membership indicates the extent to which the community membership aligns with node attributes Gender, Grade and Age. This is indicated by how close the value is to 1 within the range of 0 to 1. There is only a large association with Grade for conflict and spendtime networks. While there is an association with age, it is not as strong as with grade, and is likely due to the correlation between age and grade. 
+
+This further reinforces the notion that a student's grade is the defining social environment for their school interactions and experience of conflict spread.
+
+### Question 4
+
+```{r}
+# Calculate the fitted probabilities for the specified scenarios
+estoprob <- function(logit) {
+  exp(logit)/(1+exp(logit))
+}
+
+coefs <- c(-6.56842, 0.88070, -0.03562, 2.47710, 0.03551, 0.02145, 0.07379, 5.48828, 0.94391, 2.92381)
+
+# Fit prob 1
+estoprob(sum(c(1,0,1,1,0,2,0,0,0,0)*(coefs)))
+
+# Fit prob 2
+estoprob(sum(c(1,0,1,1,0,2,0,0,1,0)*(coefs)))
+
+# Fit prob 3
+estoprob(sum(c(1,0,1,1,0,2,0,1,0,0)*(coefs)))
+
+# Fit prob 4
+estoprob(sum(c(1,0,1,1,0,2,0,1,0,1)*(coefs)))
+
+#Odds ratios:
+print("Odds ratios")
+round(exp(coefs), 4)
+
+# str on spendtime_w2 print the full length
+#str(meta_df, list.len=ncol(meta_df))
+
+```
+
+For two students i and j within the student sample, the ERGM model predicts the likelihood of i naming j as someone they spend time with, referred to as tie formation. Odds ratio is calculated as the exponentiated coefficient of the model, used to determine fitted probabilities of a tie formation. 
+
+Fitted probabilities:
+
+1) 1.66%
+2) 4.15%
+3) 80.29%
+4) 98.70%
+
+Model Interpretations and Odds Ratios:
+
+* nodematch.Gender: With an odds ratio of 2.413, this suggests tie formation is more likely when i and j are of the same gender.
+* Nodefactor.Gender.Boy: With an odds ratio of 0.965, this indicates a slightly negative effect on tie formation when both students are boys.
+* nodematch.Grade: An odds ratio of 11.907 highlights a strong positive effect on tie formation when i and j are in the same grade.
+* Nodefactor.Grade.6th Grade: With an odds ratio of 1.036, this suggests a 3.6% increase in tie likelihood for either student being in the 6th grade, doubling if both are.
+* Nodefactor.Grade.7th Grade: An odds ratio of 1.022 indicates a 2.2% increase per student in the 7th grade.
+* Nodefactor.Grade.8th Grade: An odds ratio of 1.076 indicates a 7.6% increase in tie likelihood for students in the 8th grade.
+* edgecov.bestfriend_w2: A significant factor with an odds ratio of 241.84, implying that listing each other as best friends markedly increases the likelihood of forming a tie.
+* edgecov.conflict_w2: With an odds ratio of 2.570, conflict between students also positively influences tie formation but not as strongly as best friendship.
+* mutual: This term with an odds ratio of 18.79 suggests that mutual recognition significantly boosts the probability of tie formation.
+
+
+Proposed Additional Model Terms:
+* nodematch(race): This term would test for racial homophily, examining if students are more likely to form ties with others of the same race. This is useful in predicting friendships, possibly aiding in choosing social referents for conflict interventions and identifying students that are likely to be good targets for role model friendship roles in certain social groups, depending on the design of the intervention. It might additionally reveal how racial dynamics affect social interactions in schools, and how it changes over the school year, which would be an interesting insight in of itself. 
+* nodefactor(degree(bestfriend_w2, mode = "out")): This term would assess the impact of the number of best friends on tie formation, potentially identifying if students with more best friends are more likely to form ties with others. This could be useful in revealing a relationship between close and distant social ties, as students that feel isolated (from a lack of close friendships) might have many acquaintances, or vice versa. This is an important interplay to consider in understanding non-linear social dynamics that change from student to student. 
+
+## Appendix: All code in this assignment
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
+
+```
+
+## Bibliography
+
+McLevey, J., Scott, J. and Carrington, P.J. (2023). The Sage Handbook of Social Network Analysis. SAGE Publications Limited.
+
+Paluck, E.L., Shepherd, H. and Aronow, P.M. (2016). Changing climates of conflict: A social network experiment in 56 schools. Proceedings of the National Academy of Sciences, 113(3), pp.566–571. doi:https://doi.org/10.1073/pnas.1514483113.
+
+Scott, J. (2017). Social network analysis. London: Sage Publications Ltd ; Thousand Oaks, California.
+
+
+

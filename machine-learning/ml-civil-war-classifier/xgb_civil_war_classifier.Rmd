@@ -1,0 +1,533 @@
+---
+title: "MY474 Problem Set 2"
+author: "29189"
+date: "23/02/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(glmnet)
+```
+
+## Exercise 1
+
+```{r}
+# EXERCISE 1
+
+# THIS CODE GENERATES FUNCTIONS TO CREATE MOCK DATA AND PROVIDE TOOLS FOR COMPARING AND EVALUATING TRAIN1 and TRAIN2 FUNCTIONS
+
+# Set seed for reproducibility
+set.seed(89)
+
+# Function to generate IV data - 4 IVs with 1 constant and 3 in uniform distributions
+genX <- function(n) {
+  return(
+    data.frame(X0 = 1,
+               X1 = runif(n,-5,5),
+               X2 = runif(n,-2,2),
+               X3 = runif(n,-10, 10))
+  )
+}
+
+# Function to generate outcome data as linear combination of IVs
+genY <- function(X) {
+  # Add noise to the linear combination of IVs
+  Ylin <- 4*X$X0 + 2*X$X1 - 3*X$X2 + (1/2)*X$X3 + rnorm(nrow(X),0,0.08) 
+  # Normalize via sigmoid function
+  Yp <- 1/(1+exp(-Ylin))
+  # Convert to binary outcome
+  Y <- rbinom(nrow(X),1,Yp)
+  return(Y)
+}
+
+# Function to get logistic yhat predictions (1 or 0)
+predict_row <- function(row, coefficients) {
+  # row = a single row of the X matrix
+  # coefficients = the coefficients of the linear model
+  
+  # First get values of the individual linear terms
+  pred_terms <- row*coefficients
+  # Then sum these up 
+  yhat <- sum(pred_terms)
+  #Convert to probability using logit function
+  return(1/(1+exp(-yhat)))
+}
+
+# Function to determine mean squared error of a model
+MSE <- function(ytrue, yhat) {
+  return(mean((ytrue-yhat)^2))
+}
+
+# Function to determine negative log likelihood of a model
+NLL <- function(ytrue, yhat) {
+  return(-sum(log(
+    (yhat^ytrue)*((1-yhat)^(1-ytrue))
+  )))
+}
+
+# Generate the data with 2000 rows
+X <- genX(2000)
+y <- genY(X)
+```
+
+```{r}
+# TRAIN 1 FUNCTION IS IDENTIFIED AS TRADITIONAL STOCHASTIC GRADIENT DESCENT, DEFINED AS FOLLOWS
+
+train <- function(X, y, l_rate, epochs) {
+  # X = training data
+  # y = true outcomes
+  # l_rate = learning rate
+  # reps = number of SGD iterations through X
+  
+  # Instantiate model with basic guess of 0 for all coefficients 
+  coefs <- rep(0, ncol(X))
+  
+  # Instantiate error storage
+  error_store <- data.frame(epoch = 1:epochs, MSE = rep(NA, epochs), NLL = rep(NA, epochs))
+  
+  # Start timer
+  start_time <- Sys.time()
+  
+  # Iterate over epochs and random samples of x
+  for (b in 1:epochs) {
+    for (i in sample(1:nrow(X))) { # sampling the indices shuffles the order
+      row_vec <- as.numeric(X[i,]) # make row easier to handle
+      
+      yhat_i <- predict_row(row_vec, coefficients = coefs)
+      
+      # for each coefficient, apply update using partial derivative
+      coefs <- sapply(1:length(coefs), function (k) {
+        coefs[k] - l_rate*(yhat_i - y[i])*row_vec[k]
+      }
+      )
+    }
+    
+    # calculate current error
+    yhat <- apply(X, 1, predict_row, coefficients = coefs)
+    MSE_epoch <- MSE(y, yhat)
+    NLL_epoch <- NLL(y, yhat)
+    
+    # Store the error for this epoch
+    error_store[b,] <- c(b, MSE_epoch, NLL_epoch)
+  }
+  
+  # End timer
+  end_time <- Sys.time()
+  
+  results <- list(coefs = coefs, error_store = error_store, time_taken = end_time - start_time)
+  
+  return(results) # output the final estimates
+}
+
+coef_model <- train(X = X, y = y, l_rate = 0.001, epochs = 100)
+```
+
+```{r}
+# TRAIN 2 FUNCTION IS IDENTIFIED AS STOCHASTIC GRADIENT DESCENT WITH MOMENTUM, DEFINED AS FOLLOWS
+
+# Note: for the purposes of visualizing the algorithim, it has been modified slightly from the original
+
+train2 <- function(X, y, l_rate, m = 0.9, epochs) {
+  # Initialize coefficients as 0
+  coefs <- rep(0, ncol(X))
+  
+  # Initialize velocity as 0
+  v <- rep(0, ncol(X))
+  
+  # Initialize error storage
+  error_store <- data.frame(epoch = 1:epochs, MSE = rep(NA, epochs), NLL = rep(NA, epochs))
+  
+  # Start timer
+  start_time <- Sys.time()
+  
+  for (b in 1:epochs) {
+    for (i in sample(1:nrow(X))) { 
+      
+      row_vec <- as.numeric(X[i,])
+      
+      yhat_i <- predict_row(row_vec, coefficients = coefs)
+      
+      for(k in 1:length(coefs)) {
+        
+        v[k] <- m*v[k] + l_rate*(yhat_i - y[i])*row_vec[k] 
+        
+        coefs[k] <- coefs[k] - v[k]
+      }
+    }
+
+    yhat <- apply(X, 1, predict_row, coefficients = coefs)
+    MSE_epoch <- MSE(y, yhat)
+    NLL_epoch <- NLL(y, yhat)
+    
+    # Store the error for this epoch
+    error_store[b,] <- c(b, MSE_epoch, NLL_epoch)
+  }
+  
+  # End timer
+  end_time <- Sys.time()
+  
+  results <- list(coefs = coefs, error_store = error_store, time_taken = end_time - start_time)
+  return(results)
+}
+coef_model2 <- train2(X = X, y = y, l_rate = 0.001, epochs = 100)
+
+# combine the two error stores together
+error_store <- coef_model2$error_store %>%
+  select(NLL, MSE) %>%
+  rename(SGD2_NLL = NLL, SDG2_MSE = MSE) %>%
+  cbind(coef_model$error_store, .) %>%
+  rename(SGD1_NLL = NLL, SGD1_MSE = MSE)
+```
+
+#### Figure 1: Negative log-likelihood over time by algorithim 
+```{r}
+# Plot the error over time
+library(ggplot2)
+
+#Negative log-likelihood
+ggplot(error_store, aes(x = epoch)) +
+  geom_line(aes(y = SGD1_NLL, color = "red")) +
+  geom_line(aes(y = SGD2_NLL, color = "blue")) +
+  theme_minimal() +
+  labs(x = "Epoch", y = "Loss Function (negative log likelihood)") +
+  theme(legend.position = "top") +
+  scale_color_manual(values = c("red", "blue"), labels = c("Stochastic Gradient Descent (train1)", "Stochastic Gradient Descent with Momentum (train2)"))
+```
+
+#### Figure 2: Table of computational time, final coefficients, and final error by algorithim
+
+```{r}
+# Neat dataframe for presenting model comparison results
+results_df_SGD_SGDM <- tibble(
+  Method = c("Traditional Stochastic Gradient Descent", "Stochastic Gradient Descent with Momentum"),
+  Time_Taken = c(coef_model$time_taken, coef_model2$time_taken),
+  Final_Coefficients = c("3.1660217  1.6327201 -2.4372223  0.3872164", "3.6808136  1.8921464 -2.7876448  0.4938963"),
+  Final_NLL = c(tail(coef_model$error_store$NLL, 1), tail(coef_model2$error_store$NLL, 1))
+)
+
+# Print the DataFrame
+print(results_df_SGD_SGDM)
+```
+
+Question 1:
+
+Both algorithms are implementations of stochastic gradient descent (SGD). The key difference in the 'train2' algorithm is the inclusion of the momentum hyper parameter $m$ and the velocity vector $v_t$. This implements a 'stochastic gradient descent with momentum' (SGDM) algorithm. This algorithm modifies the parameter update step from traditional SGD as follows:
+
+\[ \theta_{t+1} = \theta_t + v_{t+1} \]
+
+where $\theta_t$ is the model parameter at time $t$, and $v_{t+1}$ is the parameter velocity term at time $t+1$. Essentially, the update step is the velocity term, which is defined according to the following:  
+
+\[ v_{t+1} = m v_t + \eta \nabla f(\theta_t) \]
+
+where $v_t$ is the velocity term at time $t$, $m$ is the momentum hyperparameter, $\eta$ is the learning rate, and $\nabla f(\theta_t)$ is the gradient of the loss function at time $t$. Given this, the primary difference between the two algorithms is the inclusion of the velocity term in the update step. More specifically, as parameter estimates progress, each following parameter is estimated based on how quickly the loss function has been decreasing in previous steps. This is in contrast to traditional SGD, which updates parameters based on the current gradient of the loss function. Therefore, SGDM dampens the effect of saddle and plateaus in the loss function on speed of descent, which would otherwise slowdown the convergence on the minimum; it is therefore a faster algorithim. This is evidenced in the runtime of SGD versus SGDM, where SGDM is faster over 100 epochs. Moreover, in figure 1, we can see that the negative log likelihood (NLL), which measures model error, is far lower after one epoch of training in SGDM compared to traditional SGD. Also, the rate of decrease in NLL is faster in SGDM than in traditional SGD. 
+
+Question 2:
+
+However, there are a few disadvantages to the SGDM algorithm despite its advantages in efficiency. First, the convergence on an true minimum is not guaranteed. This is because the momentum term can cause the algorithm to overshoot the minimum, and then oscillate around it, similar to a ball repeatedly rolling in and out of a valley. This is evidenced in figure 1 where the rate of decrease in NLL is not consistent, and periodically spikes in contrast to the smooth decrease exhibited by SGD. This suggests that models created by SGDM may not generalize to new data very well as it fails to converge on an accurate minimum of the loss function, resulting in low accuracy (high variance) model. Indeed, the unpredictability of the accuracy of the final coefficient estimate is not desirable.
+
+Moreover, the algorithm is sensitive to the momentum hyperparameter $m$. If $m$ is too high, the algorithm may overshoot the minimum and oscillate around it. If $m$ is too low, the algorithm may not be able to escape saddle points and plateaus in the loss function, and model accuracy will decrease. Lower velocity will also decrease algorithm efficiency. A middleground in this trade-off may exist, however a better approach is to decrease momentum as the algorithm progresses so that it does converge on a true minimum, particularly in later epochs. This can be done by implementing a variation on SGDM called Nesterov Momentum (Nesterov 1983), which introduces a look-ahead step and modifies equations according to the following:
+
+Look-ahead step: \[ \theta_{\text{temp}} = \theta_t + \mu v_t \]
+
+Velocity update: \[ v_{t+1} = \mu v_t + \eta \nabla f(\theta_{\text{temp}}) \]
+
+Parameter update: \[ \theta_{t+1} = \theta_t + v_{t+1} \]
+
+Nesterov momentum fixes the problem of overshooting the minimum by calculating the gradient of the loss function at a look-ahead position (calculated based on velocity), and this enables the algorithim to temper its momentum term based on the observed future gradient. It avoids taking steps that are too large (overshooting) or steps that are too small (resulting in longer convergence) (Kochenderfer and Wheeler, 2019). Essentially, this retains the advantages of efficiency offered by momentum while also ensuring model accuracy and convergence on a true minimum.
+
+## Exercise 2
+
+```{r, echo=TRUE}
+# Define the best model function - Note this function includes many contingent functions that are defined within the function
+best_model <- function(x,y) {
+
+# FIRSTLY - DEFINE THE FUNCTIONS THAT WILL BE USED IN THE MODEL TRAINING AND VALIDATION PROCESS
+
+  #standardize the data
+  standardize <- function(x) {
+    return((x - mean(x)) / sd(x))
+  }
+  
+  # Generate n-degree polynomial vector function
+  generate_poly_features <- function(x, degree) {
+    # x is a vector of predictor variable
+    # degree is the degree of the polynomial
+    
+    # Generate polynomial features function
+    poly_features <- matrix(NA, nrow = length(x), ncol = degree)
+    for (i in 1:degree) {
+      poly_features[,i] <- x^i
+    }
+    return(poly_features)
+  }
+  
+  # Generate ridge loss function
+  ridgeLoss <- function(ytrue, yhat, coefficients, lambda) {
+    mse <- MSE(ytrue, yhat)
+    l2_penalty <- lambda*sum(coefficients^2)
+    return(mse + l2_penalty)
+  }
+  
+  # Generate mean squared error function
+  MSE <- function(ytrue, yhat) {
+    error <- ytrue - yhat
+    loss <- 1/length(y) * sum(error^2)
+    return(loss)
+  }
+  
+  # DEFINE THE STOCHASTIC GRADIENT DESCENT FUNCTION WITH RIDGE REGULARIZATION
+  sgd_ridge_regression <- function(x, y, lambda, l_rate=0.001, epochs = 100, degree) {
+    # x is a vector of predictor variable
+    # y is a vector of true outcome variable
+    # lambda is the regularization parameter
+    # learning_rate is the step size for gradient descent
+    # epochs is the number of iterations
+    # Note: function assumes x and y are standardized, so y-intercept is estimated at 0, no need to regularize it 
+    
+    
+    # Firstly, get polynomial features, with intercept at index 0
+    x_poly <- generate_poly_features(x, degree)
+    
+    # Randomly initialize a number of coefficients equal to degree
+    coefs <- runif(ncol(x_poly), -0.5, 0.5)
+    
+    # Loop through epochs
+    for(epoch in 1:epochs) {
+      # Loop through random samples (stochastic gradient descent)
+      for(i in sample(1:length(x))) {
+        # Get current x and y
+        x_var <- x[i]
+        y_var <- y[i]
+        
+        # get matching polynomial values for current x
+        x_poly_i <- generate_poly_features(x_var, degree)
+        
+        # Get predicted y using current coefficients and polynomial values of current x
+        yhat_i <- sum(coefs * x_poly_i)
+        
+        # Apply update to each coefficient using partial derivative
+        coefs <- sapply(1:length(coefs), function (k) {
+          # Get gradient for current x 
+          grad <- (yhat_i - y_var)*x_var
+          l2_penalty <- 2*lambda*coefs[k]
+          # Update coefficients
+          coefs[k] - l_rate*(grad + l2_penalty)
+        }
+        )
+      }
+      # Calculate yhat for all x using current coefficients
+      yhat <- rowSums(x_poly * coefs)
+      # Calculate loss for current epoch: sum of squared residuals + l2 penalty
+      loss_epoch <- ridgeLoss(y, yhat, coefs, lambda) 
+    
+     return(coefs)
+     }}
+
+  # DEFINE THE CROSS VALIDATION FUNCTION FOR K-FOLDS
+  generate_k_folds <- function(x, y, k = 5) {
+    #This approach involves randomly dividing the set of observations into k groups, or folds, of approximately equal size. The first fold is treated as a validation set, and the method is fit on the remaining k − 1 folds.
+    
+    
+    # x is a vector of predictor variable
+    # y is a vector of true outcome variables, same length
+    # k is the number of folds, 5 is default
+    
+    # Number of observations
+    n <- length(x)
+    
+    # Create a sequence of indices
+    indices <- sample(1:n)
+    
+    # Calculate the size of each fold
+    fold_size <- ceiling(n / k)
+    
+    # Initialize a list to store the folds
+    folds <- vector("list", k)
+    
+    # Generate the folds
+    for(i in 1:k) {
+      # Calculate start and end indices for the fold
+      start_index <- ((i - 1) * fold_size) + 1
+      end_index <- min(i * fold_size, n)
+      
+      # Get the indices for the current fold
+      fold_indices <- indices[start_index:end_index]
+      
+      # Extract the data for the current fold
+      folds[[i]] <- list(
+        x_train = x[-fold_indices],
+        y_train = y[-fold_indices],
+        x_test = x[fold_indices],
+        y_test = y[fold_indices]
+      )
+    }
+    
+    return(folds)
+  }
+  
+  
+  # Now all functions have been defined, we standardize the data to make it suitable for ridge regularization
+  x <- standardize(x)
+  y <- standardize(y)
+  
+  # Next, we define a hyper parameter search method to iterate over different degrees and lambda values, trying to find a minimum of the variance and bias trade off
+  # The chosen search method is a semi-random grid search with discrete degree values and 30 bounded random values for the continuous lambda parameter, clustered around lambda < 1 
+  
+    degrees <- 1:7
+    lambda_values <- c(runif(10, 0, 0.1), runif(10, 0.1, 1), runif(10, 1, 10))
+    best_loss <- Inf
+    best_model <- NULL
+    best_degree <- NULL
+    best_lambda <- NULL
+   
+      # Split data for cross-validation, use k = 5 as a good default for number of splits, not too large but still sufficient for cross validation
+      folds <- generate_k_folds(x, y, k = 5)  
+      
+      # perform grid search for finding optimal model hyper parameters
+      for(degree in degrees) {
+        for(lambda in lambda_values) {
+          # perform cross-validation and model training over k folds for each hyperparameter combination
+          loss_vec <- c()
+          for (fold in folds) {
+            x_train <- fold$x_train
+            y_train <- fold$y_train
+            x_val <- fold$x_test
+            y_val <- fold$y_test
+            # Train a new model for each of the 5 folds' train-test split
+            model_weights <- sgd_ridge_regression(x_train, y_train, lambda, degree = degree)
+       
+            # Perform validation step, determine loss on validation data
+            x_val_poly <- generate_poly_features(x_val, degree)
+            yhat <- rowSums(x_val_poly * model_weights)
+            loss <- ridgeLoss(y_val, yhat, model_weights, lambda)
+            loss_vec <- c(loss_vec, loss) # store the result
+            
+          }
+          
+          # Compare model accuracy (minimum loss) for current hyper parameters against previous
+          # Final model score is taken as the average loss on the validation across the k folds
+          loss <- mean(loss_vec)
+          # if loss less than minimum previously observed, update it
+            if(loss < best_loss) {
+              best_loss <- loss
+              best_model <- model_weights
+              best_degree <- degree
+              best_lambda <- lambda
+            }
+          }
+          }
+        
+    cat("Optimal Model Form as follows:\n", "Optimal polynomial degree is", best_degree, "\nOptimal lambda is", best_lambda, "\nOptimal model weights are", best_model)  
+    cat("\nBest Validation Loss:", best_loss)
+  return(list(best_model, best_degree, best_lambda, best_loss))
+}
+```
+
+The notable choices in the function above are the hyperparameter search method, which follows a grid search of 30 randomly selected values for the lambda parameter; these values are clustered around low (<1) lambda values. This is because a single continuous predictor variable should not be excessively dampened by the lambda as it must necessarily have high predictive power, while acknowledging that this may change in high polynomial degree, including >1 lambda values as well. Grid search further exhaustively tests all 7 polynomial degrees, testing a total of 210 combinations of lambda and degree to minimize the loss function. 5 folds are used for cross validation, and the mean loss over each fold is used to determine the best model; 5 folds are appropriate to balance time-complexity with robust validity testing, and is a common convention within stochastic gradient descent for regularization (Kochenderfer and Wheeler, 2019). Finally, 100 epochs and a learning rate of 0.001 are selected for the stochastic gradient descent, as these are common defaults for the method and they ensure time complexity is not too excessive (Kochenderfer and Wheeler, 2019).
+
+Note that the model coefficients are after standardization and may need to be unstandardized. 
+
+## Exercise 3
+
+Within the civil war data, there are 53 sociopolitical and economic independent variables and a single binary outcome variable (war) which indicates ongoing civil war for each given country-year. In this context, an effective model should predict civil war status with high accuracy on unseen testing data. In addition, given the high number of predictors, there is high potential for some predictors to be irrelevant, so an effective model should also eliminate these, retaining only predictors with high significance based on a threshold that balances the model's ability to capture trends in training data with an ability to generalize to unseen testing data (bias-variance trade-off). Finally, given a binary outcome, a logistic regression model is a suitable choice for the final model form. 
+
+
+```{r}
+# Load in the raw civil war data
+load("civil_wars.RData")
+
+# Split the data into training and testing based on 80/20 split
+set.seed(123)
+indices <- sample(1:nrow(civwars))
+split_index <- round(nrow(civwars) * 0.8)
+civwars_train <- civwars[indices[1:split_index],]
+civwars_test <- civwars[indices[(split_index+1):nrow(civwars)],]
+
+# Split the training data into predictors and outcome
+civwars_trainX <- as_tibble(civwars_train) %>% 
+  select(-c(2:9)) # Remove the irrelevant outcome variables
+civwars_trainY <- civwars_train$war
+
+# Train the model using the training data, with k = 10 folds
+# 10 Folds is a common choice for k, and provides sufficient validation sets for minimizing bias and variance
+# Note that cv.glmnet automatically standardizes the predictors, otherwise it would be included as a data processing step
+lasso_cv <- cv.glmnet(as.matrix(civwars_trainX), civwars_trainY, alpha = 1, family = "binomial", nfolds = 10)
+
+# Extract the optimal lambda value for the L1 penalty term
+lambda_min <- lasso_cv$lambda.min
+
+# Train final model using the optimal lambda value from cross validation
+final_mod <- glmnet(as.matrix(civwars_trainX), civwars_trainY, alpha = 1, lambda = lambda_min, family = "binomial")
+```
+
+The primary training decision is the regularization method. I chose LASSO regression given that its lambda parameter can be tuned to eliminate irrelevant parameters, a suitable feature for the high number of predictors. This makes it preferable to ridge regression when there is large, complex independent variable data. LASSO also aids in overcoming multicolinearity between predictors as LASSO maximizes the total variation in data described by the minimum degrees of freedom (the number of coefficients), and would naturally tend to eliminate colinear predictor pairs and groups of variables, all while balancing the bias-variance trade-off through lambda. To optimize the lambda value, which determines the extent of regularisation (and by extension, irrelevant parameter elimination), 10-fold cross validation is used within cv.glmnet(), providing sufficient validation steps to achieve a reliable estimate of the model's performance. The optimal lambda value is then used to train the final model, which is a logistic regression model.
+
+An alternative of stochastic gradient descent logistic estimator, were rejected on the premise that not all variables may be predictively significant. 
+
+#### Figure 3: Table of coefficients for final logistic regression model
+```{r}
+# get coefficients 
+coef(final_mod)
+```
+
+
+#### Figure 4: Plot of LASSO coefficient paths for the civil war data
+```{r}
+plot(lasso_cv$glmnet.fit, "lambda")
+```
+Figures 3 and 4 demonstrate the effectiveness of the LASSO regularization for this context. The final model has 19 out of 53 predictors with zeroed coefficients. As lambda increases, many predictors, indicated by the colored lines in figure 4, are eliminated from the model, likely due to colinearity or lack of predictive power, ultimately revealing the more significant predictive variables. Lambda is balanced at a point that makes the model generalizable to the testing data while retaining accuracy to the trends observed. This represents a substantively useful model for political science.
+
+
+#### Figure 5: Accuracy, Specificity, Sensitivity, Confusion Matrix of the Final Logistic Classification Model
+
+```{r}
+# Test the model using the testing data
+civwars_testX <- as_tibble(civwars_test) %>% 
+  select(-c(2:9))
+
+civwars_testY <- civwars_test$war
+
+# Predict the outcome using the test data
+civwars_test_pred <- predict(final_mod, newx = as.matrix(civwars_testX), s = lambda_min, type = "response")
+
+# Calculate the accuracy of the model: a standard evaluation for logistic classification equations
+civwars_test_pred <- ifelse(civwars_test_pred > 0.5, 1, 0)
+accuracy <- mean(civwars_test_pred == civwars_testY)
+cat("Accuracy:", accuracy, "\n")
+
+# Calculate the confusion matrix
+cat("Confusion matrix:\n")
+confusion_matrix <- table(civwars_testY, civwars_test_pred)
+print(confusion_matrix)
+
+# Calculate the sensitivity and specificity
+sensitivity <- confusion_matrix[2,2] / sum(confusion_matrix[2,])
+specificity <- confusion_matrix[1,1] / sum(confusion_matrix[1,])
+
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+A final accuracy of 99.16% is achieved, indicating that the LASSO-regularized logistic regression model is highly effective at predicting civil war status on the unseen testing data. The confusion matrix (Figure 5) further shows that the model has a high true positive rate (sensitivity) of 0.987, and a high true negative rate (specificity) of 0.99. This indicates that the model is highly effective at predicting both positive and negative outcomes outside of the training data. Hence it can tenatively concluded that regularization has been effective and a good balance in the bias-variance trade-off has been achieved. The significant predictors for civil war can be easily inferred in figure 2. 
+
+
+### All code in this assignement
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
+# this chunk generates the complete code appendix. 
+# eval=FALSE tells R not to run (``evaluate'') the code here (it was already run before).
+```
+
+
+### Works Cited
+
+Kochnderfer, Mykel J, and Tim A Wheeler. Algorithms for Optimization. Cambridge, Massachusetts Etc., The Mit Press, 2019.
+
+Nesterov, Yurii. “A method for solving the convex programming problem with convergence rate O(1/k^2).” Proceedings of the USSR Academy of Sciences 269 (1983): 543-547.
+
