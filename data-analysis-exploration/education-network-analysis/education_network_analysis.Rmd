@@ -1,10 +1,10 @@
 ---
-title: "MY_461_Final"
-author: '29189'
+title: "Education_Network_Analysis"
+author: 'ry-rousseau'
 date: "2024-05-01"
 output:
-  word_document: default
   html_document: default
+  word_document: default
   pdf_document: default
 ---
 
