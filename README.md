@@ -1,4 +1,4 @@
-# 🗺️ Ryan's Portfolio
+# 🗺️ Data Science Portfolio
 
 This portfolio is a compilation of all the data science projects I have done for academic, self-learning and hobby purposes. This portfolio also contains my achievements, skills and certificates. It is updated on a regular basis. 
 
@@ -45,3 +45,15 @@ This portfolio is a compilation of all the data science projects I have done for
 		- [Civil War Predictor](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/ml-civil-war-classifier/README.md): Predicting the likelihood of civil war outbreak using historical country-year data and LASSO logistic regression.
         - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
         - [Primary School Network Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/education-network-analysis/README.md): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
+
+## Core Competencies
+
+- **Methodologies**: Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Big Data Analytics
+- **Languages**: Python (Pandas, Numpy, Scikit-Learn, Scipy, Keras, Tensorflow, Matplotlib), R (dplyr, tidyr, caret, ggplot2, glm), SQL
+- **Tools**: MySQL, Tableau, Git, Google Cloud, Azure, Power BI, Streamlit
+
+## Certificates
+
+- [Kaggle Time Series](https://www.kaggle.com/learn/certification/ryanrousseau/time-series)
+- [Kaggle Pandas](https://www.kaggle.com/learn/certification/ryanrousseau/pandas)
+- [Azure AI Fundamentals by Microsoft](https://www.credly.com/badges/5917b3f4-5ed9-4a10-94cc-6083177f0573/public_url)
