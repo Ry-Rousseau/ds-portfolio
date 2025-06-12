@@ -13,7 +13,7 @@ This portfolio is a compilation of all the data science projects I have done for
 - ### Machine Learning
 
     - __Python__
-        - [Stock Price Predictor (LSTM Neural Network)](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/LSTM-net-stock-predictor/README.md): A financial analysis model to predict short-term price movements for technology stocks using LSTM neural networks. Achieved 61% accuracy in predicting direction of price movements 10 minutes into the future.
+        - [Stock Price Predictor (LSTM Neural Network)](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/LSTM-net-stock-predictor/README_NEW.md): A financial analysis model to predict short-term price movements for technology stocks using LSTM neural networks. Achieved 61% accuracy in predicting direction of price movements 10 minutes into the future.
 
 	_Tools: Tensorflow, Pandas, Scikit-learn, Numpy, Matplotlib_
 
@@ -40,7 +40,7 @@ This portfolio is a compilation of all the data science projects I have done for
 - ### Micro Projects:
 
 	- __Python__
-		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/README.md): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on computational efficiency.
+		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/README.md): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on efficiency, reducing algorithm runtime from 30 to 2.4 seconds.
 		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/README.md): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks.
     - __R__
 		- [Civil War Predictor](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/ml-civil-war-classifier/README.md): Predicting the likelihood of civil war outbreak using historical country-year data and LASSO logistic regression.
