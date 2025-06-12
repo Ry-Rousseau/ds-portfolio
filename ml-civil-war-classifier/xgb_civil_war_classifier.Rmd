@@ -14,6 +14,23 @@ library(tidyverse)
 library(glmnet)
 ```
 
+### Exercise 1: Gradient Descent Algorithm Analysis 
+- **Objective**: Compare Stochastic Gradient Descent (SGD) with SGD + Momentum
+- **Implementation**: Custom algorithms built from scratch
+- **Analysis**: Performance comparison, convergence behavior, and theoretical discussion
+
+### Exercise 2: Custom Regularized Regression Function 
+- **Objective**: Build an automated model selection function for polynomial regression
+- **Features**: Ridge regularization, cross-validation, hyperparameter optimization
+- **Output**: Optimal polynomial degree, lambda value, and trained model
+
+### Exercise 3: Civil War Prediction Model
+- **Objective**: Binary classification on real-world political science data
+- **Method**: LASSO logistic regression with feature selection
+- **Dataset**: 53 socioeconomic/political predictors across country-years
+
+
+
 ## Exercise 1
 
 ```{r}

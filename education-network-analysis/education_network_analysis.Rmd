@@ -1,7 +1,7 @@
 ---
-title: "Education_Network_Analysis"
+title: "Middle School Social Network Analysis"
 author: 'ry-rousseau'
-date: "2024-05-01"
+date: "2024"
 output:
   html_document: default
   word_document: default
@@ -12,13 +12,94 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
+### Project Overview
+
+A network analysis into a social network of a United States middle school that is constructed from survey data on linkages in terms of spending time, conflict and best friendship. 
+
+The project utilizes the fundamental measures and metrics within social network analysis to create visualizations. It was completed as the final assignment for the class Social Network Analysis at the LSE.
+
+##Network Models and Measures
+
+Analysis is across two time points (waves). Models generate empirical network structures and compares them to randomized counterparts to examine the structural and social dynamics of student interaction.
+
+### Network Models
+
+**Empirical Networks:**
+- `spendtime_w2`, `bestfriend_w2`, `conflict_w2`: Directed graphs derived from student survey data.
+- Each network encodes a specific relation: time spent together, best friendship, and conflict respectively.
+
+**Randomized Baseline Models:**
+- **Configuration models** (`sample_degseq`) preserve empirical in- and out-degree distributions.
+- Justified as the best null model due to constraints in survey design (e.g., capped outgoing ties), which alternative models like Erdős–Rényi do not respect.
+
+### Network Measures
+
+For both empirical and randomized networks, the following metrics were computed:
+
+| **Measure**         | **Description**                                                                 |
+|---------------------|----------------------------------------------------------------------------------|
+| **Density**         | Proportion of observed edges out of all possible edges                          |
+| **Mean Degree**     | Average number of ties per node                                                 |
+| **Average Path Length** | Mean shortest path length across all node pairs                            |
+| **Transitivity**    | Global clustering coefficient (likelihood of triadic closure)                   |
+| **Reciprocity**     | Proportion of mutual ties                                                       |
+
+These metrics inform how clustered, reciprocal, or navigable the social networks are compared to randomness.
+
+### Centrality Measures
+
+To assess individual student roles within networks:
+
+- **Spendtime:** PageRank centrality—identifies socially influential students ("social referents").
+- **Conflict:** Betweenness centrality—identifies students who act as bridges in conflict propagation.
+
+Across waves, centrality metrics were moderately unstable (r < 0.59), highlighting the evolving nature of social influence.
+
+### Degree Distributions
+
+Out-degree distributions are right-skewed and capped (by survey design), while in-degree distributions are left-skewed. This indicates:
+- Students list many acquaintances (broad out-degree),
+- But few are commonly chosen (selective in-degree), implying differentiated social standing.
+
+### Assortativity
+
+Assortativity was computed for **gender**, **grade**, and **age**:
+- **Grade** consistently had the strongest assortative effect, increasing over time.
+- **Gender** assortativity declined slightly, suggesting growing inter-gender interactions.
+- **Age** assortativity remained stable; its effect is likely mediated through grade.
+
+### Community Detection
+
+- Detected via leading eigenvector clustering.
+- Community membership (especially in the *spendtime* and *conflict* networks) aligns strongly with **grade**, per Normalized Mutual Information (NMI) values.
+- Indicates that grade-level remains a key organizing structure for school social networks.
+
+### ERGM Modeling (Exponential Random Graph Models)
+
+An ERGM predicted tie formation in the *spendtime* network:
+
+- Significant predictors: **Same Grade (OR ~ 11.9)**, **Best Friendship (OR ~ 241.8)**, **Mutual Tie (OR ~ 18.8)**, **Same Gender (OR ~ 2.4)**, **Conflict (OR ~ 2.6)**.
+- Model demonstrates that positive (friendship) and even negative (conflict) relations increase likelihood of ties, emphasizing nuanced dynamics in school social structures.
+
+**Suggested Extensions:**
+- Include `nodematch(race)` to explore racial homophily.
+- Model `nodefactor(bestfriend out-degree)` to assess interplay between close and casual ties.
+
+---
+
+This combination of empirical network analysis, centrality tracking, assortativity, and ERGM modeling reveals complex, evolving student interactions shaped by structural (grade-based) and relational (friendship/conflict) forces.
+
+---
+
+### Complete Code
+
 ```{r}
 library(igraph)
 library(tidyverse)
 library(scales)
 
 # Load the RData file
-load("37070-0001-32.RData")
+load("school_network.RData")
 
 # Extract the networks
 spendtime_w2 <- get("spendtime_w2")
@@ -26,7 +107,6 @@ bestfriend_w2 <- get("bestfriend_w2")
 conflict_w2 <- get("conflict_w2")
 ```
 
-### Question 1
 
 ```{r q1p1}
 # Function to calculate specified network metrics
@@ -128,7 +208,6 @@ In-degree distributions are generally left-skewed, indicating that most students
 
 The out-degree distributions spike at the high end of the range, suggest that while students may be selective about their close relationships, they list a broader range of acquaintances when asked about general spending time than best friendships. Some students have no best friend or spend time connections, indicating that socialization often exists in positive or negative extremes in schools.
 
-### Question 2
 ```{r q2p1, fig.width=10, fig.height=10}
 # Plot the two waves of the spendtime and conflict networks (spendtime_w1, spendtime_w2; conflict_w1, conflict_w2), with nodes sized by your chosen centrality measure
 
@@ -269,7 +348,6 @@ Correlation between in-degrees in spendtime and conflict networks is low, indica
 These trends suggests that the school year brings significant changes for the socialization patterns of students. While some roles remain stable, the norm is for change, and students likely change themselves as the year progresses, affecting their broader role as social referents or conflict mediators. It is also valuable to note that popular students are not necessarily more conflict-prone, and conflict scenarios can develop in complex, non-linear ways (Palucheck et al, 2016).  
 
 
-### Question 3
 
 ```{r}
 # Convert the above into a table of Age, Gender and Grade assortativity
@@ -378,7 +456,6 @@ The normalised mutual information (NMI) for the wave 2 spendtime and conflict ne
 
 This further reinforces the notion that a student's grade is the defining social environment for their school interactions and experience of conflict spread.
 
-### Question 4
 
 ```{r}
 # Calculate the fitted probabilities for the specified scenarios

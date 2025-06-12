@@ -35,7 +35,7 @@ This portfolio is a compilation of all the data science projects I have done for
     - __Python__
         - [AI Daily Briefer (Project Janice)](https://github.com/Ry-Rousseau/morning-brief): Building an AI-powered morning briefing system that aggregates personalized data from Gmail, Calendar, Weather, and News APIs to generate conversational audio summaries using Google's Gemini AI.
 
-	_Tools: Pandas, Google Cloud, OAuth, SSH_
+	_Tools: Pandas, Google Cloud, OAuth, SSH, Large Language Models_
 
 - ### Micro Projects:
 
@@ -43,9 +43,9 @@ This portfolio is a compilation of all the data science projects I have done for
 		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/wiki_network_analyzer.ipynb): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on efficiency, reducing algorithm runtime from 30 to 2.4 seconds.
 		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/Chopsticks_Game_Agent.ipynb): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks, implemented in a GUI widget.
     - __R__
-		- [Civil War Predictor](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/ml-civil-war-classifier/README.md): Predicting the likelihood of civil war outbreak using historical country-year data and LASSO logistic regression.
+		- [Civil War Predictor](https://rpubs.com/ry_publisher_r/lasso_civil_war_predictor): Predicting the likelihood of civil war outbreak with LASSO logistic regression on 53 sociopolitical variables.
         - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
-        - [Primary School Network Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/education-network-analysis/README.md): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
+        - [Primary School Network Analysis](https://rpubs.com/ry_publisher_r/education_network_analysis): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
 
 ## Core Competencies
 

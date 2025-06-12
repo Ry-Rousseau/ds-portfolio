@@ -11,9 +11,9 @@
 
 <meta name="author" content="ry-rousseau" />
 
-<meta name="date" content="2024-05-01" />
+<meta name="date" content="2024-01-01" />
 
-<title>Education_Network_Analysis</title>
+<title>Middle School Social Network Analysis</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,26 +350,159 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Education_Network_Analysis</h1>
+<h1 class="title toc-ignore">Middle School Social Network Analysis</h1>
 <h4 class="author">ry-rousseau</h4>
-<h4 class="date">2024-05-01</h4>
+<h4 class="date">2024</h4>
 
 </div>
 
 
+<div id="project-overview" class="section level3">
+<h3>Project Overview</h3>
+<p>A network analysis into a social network of a United States middle
+school that is constructed from survey data on linkages in terms of
+spending time, conflict and best friendship.</p>
+<p>The project utilizes the fundamental measures and metrics within
+social network analysis to create visualizations. It was completed as
+the final assignment for the class Social Network Analysis at the
+LSE.</p>
+<p>##Network Models and Measures</p>
+<p>Analysis is across two time points (waves). Models generate empirical
+network structures and compares them to randomized counterparts to
+examine the structural and social dynamics of student interaction.</p>
+</div>
+<div id="network-models" class="section level3">
+<h3>Network Models</h3>
+<p><strong>Empirical Networks:</strong> - <code>spendtime_w2</code>,
+<code>bestfriend_w2</code>, <code>conflict_w2</code>: Directed graphs
+derived from student survey data. - Each network encodes a specific
+relation: time spent together, best friendship, and conflict
+respectively.</p>
+<p><strong>Randomized Baseline Models:</strong> - <strong>Configuration
+models</strong> (<code>sample_degseq</code>) preserve empirical in- and
+out-degree distributions. - Justified as the best null model due to
+constraints in survey design (e.g., capped outgoing ties), which
+alternative models like Erdős–Rényi do not respect.</p>
+</div>
+<div id="network-measures" class="section level3">
+<h3>Network Measures</h3>
+<p>For both empirical and randomized networks, the following metrics
+were computed:</p>
+<table>
+<colgroup>
+<col width="20%" />
+<col width="79%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Measure</strong></th>
+<th><strong>Description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Density</strong></td>
+<td>Proportion of observed edges out of all possible edges</td>
+</tr>
+<tr class="even">
+<td><strong>Mean Degree</strong></td>
+<td>Average number of ties per node</td>
+</tr>
+<tr class="odd">
+<td><strong>Average Path Length</strong></td>
+<td>Mean shortest path length across all node pairs</td>
+</tr>
+<tr class="even">
+<td><strong>Transitivity</strong></td>
+<td>Global clustering coefficient (likelihood of triadic closure)</td>
+</tr>
+<tr class="odd">
+<td><strong>Reciprocity</strong></td>
+<td>Proportion of mutual ties</td>
+</tr>
+</tbody>
+</table>
+<p>These metrics inform how clustered, reciprocal, or navigable the
+social networks are compared to randomness.</p>
+</div>
+<div id="centrality-measures" class="section level3">
+<h3>Centrality Measures</h3>
+<p>To assess individual student roles within networks:</p>
+<ul>
+<li><strong>Spendtime:</strong> PageRank centrality—identifies socially
+influential students (“social referents”).</li>
+<li><strong>Conflict:</strong> Betweenness centrality—identifies
+students who act as bridges in conflict propagation.</li>
+</ul>
+<p>Across waves, centrality metrics were moderately unstable (r &lt;
+0.59), highlighting the evolving nature of social influence.</p>
+</div>
+<div id="degree-distributions" class="section level3">
+<h3>Degree Distributions</h3>
+<p>Out-degree distributions are right-skewed and capped (by survey
+design), while in-degree distributions are left-skewed. This indicates:
+- Students list many acquaintances (broad out-degree), - But few are
+commonly chosen (selective in-degree), implying differentiated social
+standing.</p>
+</div>
+<div id="assortativity" class="section level3">
+<h3>Assortativity</h3>
+<p>Assortativity was computed for <strong>gender</strong>,
+<strong>grade</strong>, and <strong>age</strong>: -
+<strong>Grade</strong> consistently had the strongest assortative
+effect, increasing over time. - <strong>Gender</strong> assortativity
+declined slightly, suggesting growing inter-gender interactions. -
+<strong>Age</strong> assortativity remained stable; its effect is likely
+mediated through grade.</p>
+</div>
+<div id="community-detection" class="section level3">
+<h3>Community Detection</h3>
+<ul>
+<li>Detected via leading eigenvector clustering.</li>
+<li>Community membership (especially in the <em>spendtime</em> and
+<em>conflict</em> networks) aligns strongly with <strong>grade</strong>,
+per Normalized Mutual Information (NMI) values.</li>
+<li>Indicates that grade-level remains a key organizing structure for
+school social networks.</li>
+</ul>
+</div>
+<div id="ergm-modeling-exponential-random-graph-models" class="section level3">
+<h3>ERGM Modeling (Exponential Random Graph Models)</h3>
+<p>An ERGM predicted tie formation in the <em>spendtime</em>
+network:</p>
+<ul>
+<li>Significant predictors: <strong>Same Grade (OR ~ 11.9)</strong>,
+<strong>Best Friendship (OR ~ 241.8)</strong>, <strong>Mutual Tie (OR ~
+18.8)</strong>, <strong>Same Gender (OR ~ 2.4)</strong>,
+<strong>Conflict (OR ~ 2.6)</strong>.</li>
+<li>Model demonstrates that positive (friendship) and even negative
+(conflict) relations increase likelihood of ties, emphasizing nuanced
+dynamics in school social structures.</li>
+</ul>
+<p><strong>Suggested Extensions:</strong> - Include
+<code>nodematch(race)</code> to explore racial homophily. - Model
+<code>nodefactor(bestfriend out-degree)</code> to assess interplay
+between close and casual ties.</p>
+<hr />
+<p>This combination of empirical network analysis, centrality tracking,
+assortativity, and ERGM modeling reveals complex, evolving student
+interactions shaped by structural (grade-based) and relational
+(friendship/conflict) forces.</p>
+<hr />
+</div>
+<div id="complete-code" class="section level3">
+<h3>Complete Code</h3>
 <pre class="r"><code>library(igraph)
 library(tidyverse)
 library(scales)
 
 # Load the RData file
-load(&quot;37070-0001-32.RData&quot;)
+load(&quot;school_network.RData&quot;)
 
 # Extract the networks
 spendtime_w2 &lt;- get(&quot;spendtime_w2&quot;)
 bestfriend_w2 &lt;- get(&quot;bestfriend_w2&quot;)
 conflict_w2 &lt;- get(&quot;conflict_w2&quot;)</code></pre>
-<div id="question-1" class="section level3">
-<h3>Question 1</h3>
 <pre class="r"><code># Function to calculate specified network metrics
 metrics &lt;- function(network) {
   list(
@@ -513,9 +646,6 @@ relationships, they list a broader range of acquaintances when asked
 about general spending time than best friendships. Some students have no
 best friend or spend time connections, indicating that socialization
 often exists in positive or negative extremes in schools.</p>
-</div>
-<div id="question-2" class="section level3">
-<h3>Question 2</h3>
 <pre class="r"><code># Plot the two waves of the spendtime and conflict networks (spendtime_w1, spendtime_w2; conflict_w1, conflict_w2), with nodes sized by your chosen centrality measure
 
 # Set some mapping parameters
@@ -683,9 +813,6 @@ the year progresses, affecting their broader role as social referents or
 conflict mediators. It is also valuable to note that popular students
 are not necessarily more conflict-prone, and conflict scenarios can
 develop in complex, non-linear ways (Palucheck et al, 2016).</p>
-</div>
-<div id="question-3" class="section level3">
-<h3>Question 3</h3>
 <pre class="r"><code># Convert the above into a table of Age, Gender and Grade assortativity
 assortativity_table &lt;- data.frame(
   Network = c(&quot;Spendtime W1&quot;, &quot;Spendtime W2&quot;, &quot;Best Friend W1&quot;, &quot;Best Friend W2&quot;, &quot;Conflict W1&quot;, &quot;Conflict W2&quot;),
@@ -833,9 +960,6 @@ between age and grade.</p>
 <p>This further reinforces the notion that a student’s grade is the
 defining social environment for their school interactions and experience
 of conflict spread.</p>
-</div>
-<div id="question-4" class="section level3">
-<h3>Question 4</h3>
 <pre class="r"><code># Calculate the fitted probabilities for the specified scenarios
 estoprob &lt;- function(logit) {
   exp(logit)/(1+exp(logit))
@@ -928,7 +1052,7 @@ library(tidyverse)
 library(scales)
 
 # Load the RData file
-load(&quot;37070-0001-32.RData&quot;)
+load(&quot;school_network.RData&quot;)
 
 # Extract the networks
 spendtime_w2 &lt;- get(&quot;spendtime_w2&quot;)

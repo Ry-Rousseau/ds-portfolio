@@ -6,3 +6,6 @@ CES20_Common_OUTPUT_vv.csv
 **/__pycache__/
 *.py[cod]
 *$py.class
+
+**/rsconnect/
+rsconnect/
