@@ -32,13 +32,13 @@ The 2021 Reddit-driven AMC short squeeze demonstrated the power of online commun
 ## Model Specification
 
 At its core the analysis treats every Reddit comment as a **relational event**  
-$(i_m,j_m,t_m)$, i.e. a directed, time-stamped interaction from sender $i_m$ to
+$e_m = (i_m, j_m, t_m)$, i.e. a directed, time-stamped interaction from sender $i_m$ to
 receiver $j_m$ at time $t_m$.
 For each potential dyad $(i,j)$ in the contemporaneous risk set $R_t$ the **hazard
 rate**
 
 $$
-\lambda_{ij}(t)\;=\;\exp\!\bigl\{\beta^{\top}u_{ij}(t)\bigr\}
+\lambda_{ij}(t) = \exp\{\beta^{\top}u_{ij}(t)\}
 $$
 
 gives the instantaneous propensity that $i$ will address $j$.
@@ -55,7 +55,7 @@ dyads) is thinned with a **1 : 5 case-control sample**, yielding
 
 Temporal memory is handled through an **exponential decay kernel** that
 lets the influence of any past interaction halve every 336 h
-($(x(t)=x(0)\,(½)^{t/336})$) (see below).
+($x(t)=x(0) \cdot (½)^{t/336}$) (see below).
 
 ![alt text](network_decay.png)
 
