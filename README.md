@@ -40,8 +40,8 @@ This portfolio is a compilation of all the data science projects I have done for
 - ### Micro Projects:
 
 	- __Python__
-		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/README.md): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on efficiency, reducing algorithm runtime from 30 to 2.4 seconds.
-		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/README.md): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks.
+		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/wiki_network_analyzer.ipynb): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on efficiency, reducing algorithm runtime from 30 to 2.4 seconds.
+		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/Chopsticks_Game_Agent.ipynb): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks, implemented in a GUI widget.
     - __R__
 		- [Civil War Predictor](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/ml-civil-war-classifier/README.md): Predicting the likelihood of civil war outbreak using historical country-year data and LASSO logistic regression.
         - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
