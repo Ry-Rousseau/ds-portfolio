@@ -18,8 +18,9 @@ This portfolio is a compilation of all the data science projects I have done for
 	_Tools: Tensorflow, Pandas, Scikit-learn, Numpy_
 
 	- __R__
-		- [Voter Turnout Prediction Pipeline](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/gb-forest-voter-predictor/README.md): Building an ensemble model to predict voter turnout on polling day for political outreach organizations. Achieved a 64.56% accuracy in identifying non-voters from large population samples.
+		- [Voter Turnout Prediction Pipeline](https://rpubs.com/ry_publisher_r/1321477): An ensemble model to predict voter turnout on polling day for political outreach organizations. Achieves a 64.56% accuracy in identifying non-voters who represent 3.56% of population.
 
+    _Tools: tidyverse, caret, glmnet, lightgbm_
 
 - ### Data Analysis and Visualization
 

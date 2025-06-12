@@ -1,0 +1,4 @@
+# Ignore large data  files anywhere in the repository
+**/CES20_Common_OUTPUT_vv.csv
+CES20_Common_OUTPUT_vv.csv
+

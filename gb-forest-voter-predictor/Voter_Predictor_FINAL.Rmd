@@ -1,17 +1,17 @@
 ---
-title: "Q2"
-author: '29189'
-date: "2024-04-26"
+title: "Voter Identifier Binary Classification Model"
+author: 'ry-rousseau'
+date: "2025"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 
-knitr::opts_chunk$set(echo = FALSE, eval = TRUE, suppressMessages = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, suppressMessages = TRUE, warning = FALSE, message = FALSE)
 ```
 
 
-```{r laod data, eval=TRUE}
+```{r load data, eval=TRUE}
 # Load the data
 cces_2020_raw <- read.csv(file="CES20_Common_OUTPUT_vv.csv")
 
@@ -300,12 +300,6 @@ confusionMatrix(data = test_Y, reference = factor(y_hat_boost), positive = "1")
 roc(test_Y_gb, y_hat_prob_boost)
 ```
 
-## Question 1
-
-I confirm that I have predicted the test outcomes, ensured they are in the right format, and submitted these separately on Moodle as required.
-
-## Question 2
-
 ### Modeling strategy
 
 The purpose of my prediction model is to identify registered voters that are unlikely to go the polls on election day in 2024. These individuals are the target population for a get-out-the-vote initiative on election day. 
@@ -390,23 +384,31 @@ ggplot(importance_df, aes(x = reorder(Variable, Importance), y = Importance)) +
        x = "Variable", y = "Mean Decrease in Accuracy - Random Forest Model")
 ```
 
-Through balancing accuracy with model simplicity on unseen testing data, it was determined that 40 variables increases model accuracy without over fitting to the training data from excessive complexity. Worth noting, LASSO was not used as a feature selection method as it is not as effective as random forest in the presence of correlated variables (James et al, 2023).
+Through rigorous balancing of prediction accuracy against model complexity on unseen testing data, empirical analysis determined that incorporating 40 predictor variables optimally enhances model performance without introducing overfitting artifacts that would compromise generalization to new data. This variable selection process was deliberately designed to avoid the pitfalls of excessive model complexity while maintaining sufficient predictive power.
 
-Viewing the most predictive variables indicates their practical and largely uncorrelated nature, each can be substantively interpreted and posed as a question on a survey, or gather from data online or on public records.
+It is worth noting that LASSO regularization was intentionally excluded as a feature selection methodology in this analysis. This decision was informed by established research demonstrating that LASSO performs suboptimally in the presence of correlated predictor variables, whereas random forest-based variable importance measures exhibit superior performance characteristics when multicollinearity exists within the feature space (James et al, 2023). Given the nature of demographic and behavioral variables commonly found in voter prediction datasets, this methodological choice was particularly prudent.
 
-#### Final model
+Examination of the most predictive variables reveals their practical utility and statistical independence. Each selected variable demonstrates clear substantive interpretability and can be operationalized either through direct survey instrumentation or through systematic collection from publicly available data sources and official records. This practical accessibility of the predictor variables ensures that the model can be deployed effectively in real-world campaign environments without requiring specialized or proprietary data collection methods.
 
-The final prediction model is a gradient boosting machine (GBM) model with hyper parameters that were tuned using Bayesian optimization to find optimal positive class reweighing, learning rate and bagging parameters to maximize out-of-bag prediction accuracy. 5-fold cross validation was used during hyperparameter optimization to prevent overfitting to training data. There is high confidence in the model's hyperparameters as Bayesian optimization was repeated 10 times to ensure the model was not stuck in a local minima. 
+## Final Model Architecture
 
-Furthermore, alternative models were tested, including random forest, with bagging and no bagging, as well as logistic regression. The GBM model outperformed all other models in terms of sensitivity and overall accuracy after hyperparameter tuning.
+The final predictive model employs a gradient boosting machine (GBM) framework, which represents an ensemble learning approach that sequentially builds weak learners to create a robust predictive system. The model's hyperparameters underwent systematic optimization through Bayesian optimization techniques, specifically targeting the identification of optimal positive class reweighting strategies, learning rate parameters, and bagging configurations. This optimization process was designed to maximize out-of-bag prediction accuracy, which serves as an unbiased estimate of model performance on unseen data.
 
-The final model was trained on 80% of the data, or over 32,000 points of data. 
+To ensure robust hyperparameter selection and prevent overfitting to the training dataset, 5-fold cross-validation was implemented throughout the optimization process. This approach partitions the training data into five equal segments, using four segments for model training and one for validation in each iteration, thereby providing a comprehensive assessment of model stability across different data subsets.
 
-### Evaluation
+The reliability of the final hyperparameter configuration is supported by the implementation of multiple optimization runs. Bayesian optimization was executed ten independent times to verify that the algorithm successfully identified global optima rather than becoming trapped in local minima. This rigorous approach provides high confidence that the selected hyperparameters represent the truly optimal configuration for the given dataset and modeling objectives.
 
-The most pertinent evaluation metric measures the model's ability to correctly identify the positive class, the non-voters, as this determines whether the organization's efforts on election day actually reach their target audience. This metric is captured by the model's sensitivity, its true positive rate, which performs at 64.56% on the unseen testing data. This suggests that a non-voter identified by the model will be a non-voter in reality 64.56% of the time, with a 95% confidence interval of [58.7%, 70.1%]. 
+The model selection process was comprehensive, incorporating comparative evaluation against several alternative modeling approaches. Candidate models included random forest implementations both with and without bagging procedures, as well as traditional logistic regression models. Following systematic hyperparameter tuning across all model types, the GBM framework demonstrated superior performance characteristics, particularly excelling in sensitivity metrics and overall classification accuracy measures.
 
-The confusion matrix of the model is listed here in Figure 2.
+The final model training utilized 80% of the available dataset, encompassing over 32,000 individual data points. This substantial training sample provides robust statistical power for parameter estimation while reserving sufficient data for unbiased performance evaluation on the held-out testing set.
+
+## Model Evaluation and Performance Metrics
+
+The primary evaluation criterion focuses on the model's capacity to accurately identify members of the positive class—specifically, individuals classified as non-voters. This metric holds particular importance for organizational strategy, as it directly determines whether voter mobilization efforts deployed on election day successfully reach their intended target demographic. Misclassification in this context would result in inefficient resource allocation and reduced campaign effectiveness.
+
+This critical performance characteristic is quantified through the model's sensitivity, also known as the true positive rate, which measures the proportion of actual non-voters correctly identified by the predictive system. On the reserved testing dataset, the model achieves a sensitivity of 64.56%, indicating that approximately two-thirds of individuals predicted to be non-voters will indeed abstain from voting in reality. The 95% confidence interval for this estimate ranges from 58.7% to 70.1%, providing a measure of statistical uncertainty around the point estimate.
+
+This performance level represents a substantial improvement over random classification and provides actionable intelligence for targeted voter outreach initiatives. The detailed classification performance breakdown is presented in the confusion matrix displayed in Figure 2, which illustrates the complete distribution of correct and incorrect predictions across both voter and non-voter categories.
 
 ```{r confusion_matrix, eval = TRUE}
 
@@ -442,18 +444,24 @@ print(cm_df)
 
 ```
 
-Figure 2 indicates that while the model has frequent false positives and false negatives, overall it is able to perform fit to the task, and correctly identifies non-voters a majority of the time, which is certainly not a straightforward task in this environment of extreme class imbalance (3.36%).
+Figure 2 indicates that while the model has frequent false positives and false negatives, overall it is able to perform fit to the task, and correctly identifies non-voters a majority of the time, which is certainly not a straightforward task in this environment of class imbalance (3.36% postive class).
 
 ### Conclusion
 
 The final model can deliver a useful predictive performance on a comparatively small set of personal variables that can be collected without excessive expense through available public or personal data, or in batches through surveying. The organization can expect to reach many presumptive non-voters on election day given the model's sensitivity of 64.56%.
 
+This demonstrates a fairly useful model given the difficulty of finding non-voters from a large population with publicly accessible data.
 
-## Appendix A: All code in this assignment
+## Extensions
+
+- Utilizing private data, such as historical propensity for non-voting would've significantly improved predictions.
+- Further feature engineering, such as dimensional reduction on the CCES data could've enabled more efficient predictions on a larger share of underlying variables
+- Neural network predictions in a large feature space
+
+
+## Appendix A: All code used
 
 ```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
-
-## QUESTION 1 CODE BELOW
 
 # Convert all character variables to factor
 data <- data %>% 
