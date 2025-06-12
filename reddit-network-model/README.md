@@ -3,7 +3,7 @@
 ## Objective
 This project provides actionable insights into the dynamics of online collective action, offering a framework for analyzing user interactions in large-scale social media networks. 
 
-**Dissertation PDF**: [msc_dissertation.pdf](msc_dissertation.pdf)
+**Dissertation PDF**: [msc_dissertation.pdf](DISSERTATION_FINAL.pdf)
 
 ## Problem & Context
 The 2021 Reddit-driven AMC short squeeze demonstrated the power of online communities to disrupt financial markets. This project analyzes the interaction patterns of Reddit users over 17 months, uncovering the drivers of growth, peak activity, and decline in such movements. These insights are valuable for social media platforms, financial analysts, and marketers aiming to understand or harness collective online behavior. It provides insight into underlying social structures of Internet movements. 
