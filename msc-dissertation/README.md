@@ -38,6 +38,4 @@ The 2021 Reddit-driven AMC short squeeze demonstrated the power of online commun
 4. Use the `modeling` folder scripts to run REM analyses.
 5. Generate visualizations using the scripts in the `visualization` folder.
 
-## Contact
-For more projects and collaboration opportunities, visit my [portfolio](../README.md).
 
