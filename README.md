@@ -1,85 +1,47 @@
-# Data Science Portfolio
+# 🗺️ Ryan's Portfolio
 
-A collection of data science projects showcasing skills in machine learning, statistical analysis, and data visualization across diverse domains.
+This portfolio is a compilation of all the data science projects I have done for academic, self-learning and hobby purposes. This portfolio also contains my achievements, skills and certificates. It is updated on a regular basis. 
 
-**Technologies:** Python, R, SQL, tidyverse, igraph, xgboost, keras, TensorFlow  
-**Focus Areas:** Machine Learning, Statistical Modeling, Data Visualization, NLP, Time Series
+**Email:** [ryanhrousseau@gmail.com]  
+**LinkedIn:** [https://www.linkedin.com/in/ryan-rousseau-24104b230/)]  
 
-## 🚀 Featured Projects
-All projects demonstrate entire data pipeline, from processing to analysis to insight.
+<Add in a section for achievements when you have some achievements>
 
-### Machine Learning
-- **[UK Police Stop Search Analysis](/machine-learning/gb-forest-voter-predictor/)** - Random forest predictor of voter-turnout from 
+****
+## Contents
 
-### Data Analysis & Visualization
-- **[UK Police Stop Search Analysis](/data-analysis-exploration/uk-police-stop-search-analysis/)** - Statistical insights and trends from police stop-and-search data
+- ### Machine Learning
 
-### Deep Learning
-- **[Chopstick Game Playing Agent](/deep-learning/chopstick-game-playing-agent/)** - Reinforcement learning agent for a strategic game
-- **[LSTM Net Stock Prediction](/deep-learning/lstm-net-stock-prediction/)** - Predicting stock prices using LSTM neural networks
+    - __Python__
+        - [Stock Price Predictor (LSTM Neural Network)](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/LSTM-net-stock-predictor/README.md): A financial analysis model to predict short-term price movements for technology stocks using LSTM neural networks. Achieved 61% accuracy in predicting direction of price movements 10 minutes into the future.
 
-### Network Analysis
-- **[Network Analysis Wikipedia](/network-analysis/wiki-network-analyzer/)** - Analyzing Wikipedia link structures and network properties
+	_Tools: Tensorflow, Pandas, Scikit-learn, Numpy_
 
-### Master's Dissertation
-- **[MSc Dissertation: A Relational Event Model Approach to Online Collective Action: Reddit’s r/amcstock](/msc-dissertation/)** - Investigates the Reddit-driven AMC short squeeze of 2021 as a case study of online collective action. Utilizes relational event models to analyze interaction patterns among Reddit users over a 17-month period, highlighting the temporary nature of social formations in successful online movements. Methods include case-control sampling and partial likelihood estimation, with replication folders for network construction, modeling, and visualization.
+	- __R__
+		- [Voter Turnout Prediction Pipeline](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/gb-forest-voter-predictor/README.md): Building an ensemble model to predict voter turnout on polling day for political outreach organizations. Achieved a 64.56% accuracy in identifying non-voters from large population samples.
 
-## 📁 Repository Structure
 
-```
-├── data-analysis-exploration/
-│   ├── uk-police-stop-search-analysis/
-├── deep-learning/
-│   ├── chopstick-game-playing-agent/
-│   ├── lstm-net-stock-prediction/
-├── network-analysis/
-│   ├── wiki-network-analyzer/
-└── msc-dissertation/
-    ├── code/
-    ├── data/
-    └── results/
-```
+- ### Data Analysis and Visualization
 
-## 🛠️ Technical Skills Demonstrated
+    - __R__
+        - [UK Police Stop and Search](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/uk-police-stop-search-investigation/README.md): Visual analysis of racial bias in UK police stop and search practices using API data stored in relational databases.
+        - [MSc Dissertation: Modeling Online Social Networks for Collective Action](https://github.com/Ry-Rousseau/msc_dissertation-relational-event-modeling/blob/main/README.md): An original model for measuring social media interactions in large-N networks. Analysed 5.3 million Reddit comments for academic dissertation and use in market and Internet research. Used Reddit shortsqueeze movement as a case study. 
+        - [Autocratic Bank Bailouts: Financialized Pensions Research](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation. 
+    
+    _Tools: tidyverse, igraph, SQL, survival_
 
-**Programming:** Python, R, SQL  
-**Machine Learning:** Scikit-learn, TensorFlow, XGBoost  
-**Data Manipulation:** Pandas, NumPy, dplyr  
-**Visualization:** Matplotlib, Seaborn, ggplot2  
-**Statistical Analysis:** Hypothesis testing, Regression, Time series analysis  
-**Tools:** Jupyter, Git, Docker, AWS
+- ### Natural Language Processing
+    - __Python__
+        - [AI Daily Briefer (Project Janice)](https://github.com/Ry-Rousseau/morning-brief): Building an AI-powered morning briefing system that aggregates personalized data from Gmail, Calendar, Weather, and News APIs to generate conversational audio summaries using Google's Gemini AI.
 
-## 📊 Project Highlights
+	_Tools: Pandas, Google Cloud, OAuth, SSH_
 
-| Project                  | Domain       | Techniques                  | Tools               | Key Insight       |
-|--------------------------|--------------|-----------------------------|---------------------|-------------------|
-| Customer Churn           | Business     | Random Forest, Feature Engineering | Python, scikit-learn | [Key finding]     |
-| Police Stop Analysis      | Public Policy | Statistical Analysis        | R, ggplot2          | [Key finding]     |
-| Stock Prediction          | Finance      | LSTM Neural Networks        | Python, TensorFlow  | [Key finding]     |
-| Reddit Collective Action | Social Media | Relational Event Models, Network Analysis | Python, R, eventnet | Temporary nature of social formations in online movements |
+- ### Micro Projects:
 
-## 🎯 Key Achievements
-
-- Achieved [X]% accuracy on [specific model/dataset]
-- Processed datasets ranging from [size] to [size] records
-- Implemented end-to-end ML pipelines with proper validation
-- Created reproducible analysis workflows with clear documentation
-
-## 📖 How to Navigate
-
-Each project folder contains:
-- **README.md** - Project overview, objectives, and key findings
-- **notebooks/** - Jupyter notebooks with analysis
-- **src/** - Clean, modular code
-- **data/** - Sample data or data access instructions
-- **results/** - Output visualizations and model artifacts
-
-## 🔗 Connect
-
-**Email:** [your.email@domain.com]  
-**LinkedIn:** [Your LinkedIn]  
-**Portfolio Website:** [Your website if applicable]
-
----
-
-*This portfolio demonstrates practical application of data science techniques across multiple domains, emphasizing reproducible research and clear communication of insights.*
+	- __Python__
+		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/README.md): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on computational efficiency.
+		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/README.md): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks.
+    - __R__
+		- [Civil War Predictor](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/ml-civil-war-classifier/README.md): Predicting the likelihood of civil war outbreak using historical country-year data and LASSO logistic regression.
+        - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
+        - [Primary School Network Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/education-network-analysis/README.md): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
