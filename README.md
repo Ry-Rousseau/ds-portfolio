@@ -29,7 +29,7 @@ This portfolio is a compilation of all the data science projects I have done for
         - [MSc Dissertation: Modeling Online Social Networks for Collective Action](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): An original model for measuring social media interactions in large-N networks. Analysed 5.3 million Reddit comments for academic dissertation and use in market and Internet research. Utilized Reddit shortsqueeze movement as a case study. 
         - [Autocratic Bank Bailouts: Financialized Pensions Research](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation. 
     
-    _Tools: tidyverse, igraph, SQL, survival_
+    _Tools: tidyverse, ggplot2, igraph, SQL, survival, rMIDAS_
 
 - ### Natural Language Processing
     - __Python__
