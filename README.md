@@ -49,7 +49,7 @@ This portfolio is a compilation of all the data science projects I have done for
 
 ## Core Competencies
 
-- **Methodologies**: Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Big Data Analytics
+- **Methodologies**: Econometric forecasting, Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Big Data Analytics
 - **Languages**: Python (Pandas, Numpy, Scikit-Learn, Scipy, Keras, Tensorflow, Matplotlib), R (dplyr, tidyr, caret, ggplot2, glm), SQL
 - **Tools**: MySQL, Tableau, Git, Google Cloud, Azure, Power BI, Streamlit
 
