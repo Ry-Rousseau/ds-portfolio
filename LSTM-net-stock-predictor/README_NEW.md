@@ -1,20 +1,22 @@
 # LSTM Neural Network for Multi-Stock Price Prediction
 
-A comprehensive deep learning approach to intraday stock price forecasting using Long Short-Term Memory (LSTM) neural networks with systematic hyperparameter optimization via grid search.
+A deep learning model for intraday stock price forecasting using Long Short-Term Memory (LSTM) neural network design. It is useful for real-world short-term price prediction with 61% bidirectional accuracy 10 minutes into the future for selected technology stocks.
 
-## 📈 Project Overview
+I developed this project in collaboration with 3 others during an internal hackathon for AI project creation. We prioritized technical development with methodological justification, creating a report detailed in project_report.md.
 
-This project implements a sophisticated multi-stock prediction system that forecasts intraday stock prices using historical time series data. The model employs LSTM neural networks to capture complex temporal dependencies in financial markets and uses automated hyperparameter tuning to optimize prediction accuracy.
+## Project Overview
 
-### 🎯 Key Achievements
+This project implements a multi-stock prediction system that forecasts intraday stock prices using historical time series data. The model employs LSTM neural networks to capture complex temporal dependencies in financial markets and uses automated hyperparameter tuning to optimize prediction accuracy.
+
+### Key Achievements
 
 - **Multi-Stock Prediction**: Simultaneous forecasting of 30 stock prices using a single unified model
-- **61% Directional Accuracy**: Successfully predicts price movement direction with 61% accuracy (significantly above 50% random chance)
+- **Model Accuracy**: Successfully predicts price movement direction with 61% bidirectional accuracy (significantly above 50% random chance)
 - **Temporal Architecture**: Utilizes 10-step lookback windows to predict prices 3 steps ahead (configurable)
 - **Optimized Performance**: Grid search across 27 hyperparameter combinations using 3-fold cross-validation
 - **Fast Inference**: 13-second prediction runtime enables real-time trading applications
 
-## 🏗️ Model Architecture
+## Model Architecture
 
 ### LSTM Network Structure
 
@@ -80,132 +82,8 @@ dataframe.shape  # (time_periods, 30_stocks)
 ![LSTM vs RNN Comparison](images/compare_lstm_rnn_predictions.png)
 *Performance comparison showing LSTM superiority over traditional RNN*
 
-## 🛠️ Technical Implementation
 
-### Dependencies
-
-```python
-# Core deep learning framework
-keras==2.14.0
-tensorflow
-
-# Model optimization and evaluation
-scikeras
-scikit-learn
-
-# Data manipulation and visualization
-pandas
-numpy
-matplotlib
-
-# Data preprocessing
-sklearn.preprocessing.MinMaxScaler
-sklearn.model_selection.GridSearchCV
-```
-
-### Grid Search Configuration
-
-```python
-parameters_grid = {
-    'model__lstm_neurons': [50, 60, 70],
-    'model__activation': ['relu', 'tanh', 'sigmoid'],
-    'model__optimizer': ['adam', 'rmsprop', 'sgd']
-}
-# Total combinations: 27 (3×3×3)
-# Cross-validation: 3-fold
-# Scoring metric: Negative MSE
-```
-
-## 🚀 Usage Instructions
-
-### Quick Start
-
-```python
-# 1. Data Preparation
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler
-
-# Load your stock data (replace with actual dataset)
-# dataframe = pd.read_csv('your_stock_data.csv')
-np.random.seed(42)
-data = np.random.rand(100, 30)  # Demo data
-dataframe = pd.DataFrame(data, columns=[f'stock{i}' for i in range(1, 31)])
-
-# 2. Train/Test Split (temporal)
-train_ratio = 0.8
-training_set_size = int(dataframe.shape[0] * train_ratio)
-train_data = dataframe[:training_set_size]
-test_data = dataframe[training_set_size:]
-
-# 3. Normalization
-scaler = MinMaxScaler(feature_range=(0, 1))
-normalize_train_data = scaler.fit_transform(train_data)
-normalize_test_data = scaler.transform(test_data)
-```
-
-### Model Training
-
-```python
-from keras.models import Sequential
-from keras.layers import Dense, LSTM, Dropout
-
-def create_lstm_model(lstm_neurons=60, dropout=0.2, activation='sigmoid', optimizer='adam'):
-    model = Sequential()
-    model.add(LSTM(lstm_neurons, input_shape=(10, 30), 
-                   activation=activation, return_sequences=True))
-    model.add(Dropout(dropout))
-    model.add(LSTM(lstm_neurons, activation=activation, return_sequences=False))
-    model.add(Dense(30))  # Output for 30 stocks
-    model.compile(optimizer=optimizer, loss='mean_squared_error')
-    return model
-
-# Train with optimal hyperparameters
-model = create_lstm_model()
-history = model.fit(train_X, train_y, epochs=200, batch_size=32, 
-                   validation_data=(test_X, test_y), verbose=1)
-```
-
-### Hyperparameter Optimization
-
-```python
-from scikeras.wrappers import KerasRegressor
-from sklearn.model_selection import GridSearchCV
-
-# Define parameter grid
-parameters_grid = {
-    'model__lstm_neurons': [50, 60, 70],
-    'model__activation': ['relu', 'tanh', 'sigmoid'],
-    'model__optimizer': ['adam', 'rmsprop', 'sgd']
-}
-
-# Grid search with cross-validation
-model = KerasRegressor(model=create_lstm_model, epochs=100, batch_size=32, verbose=0)
-grid = GridSearchCV(estimator=model, param_grid=parameters_grid, 
-                   scoring='neg_mean_squared_error', cv=3)
-grid_result = grid.fit(train_X, train_y)
-
-print(f"Best Parameters: {grid_result.best_params_}")
-print(f"Best Score: {grid_result.best_score_}")
-```
-
-## 📁 Project Structure
-
-```
-LSTM-net-stock-predictor/
-├── final_Project_code.ipynb          # Complete implementation with grid search
-├── project_report.md                 # Detailed technical report and analysis
-├── grid_result_combined.xlsx         # Hyperparameter optimization results
-├── images/                           # Visualization assets
-│   ├── network_arhcitecture.png      # LSTM architecture diagram
-│   ├── loss_over_time.png           # Training/validation loss curves
-│   ├── actual_vs_predicted_prices.png # Prediction quality visualization
-│   └── compare_lstm_rnn_predictions.png # Architecture comparison
-└── README.md                         # This documentation
-```
-
-## 🔍 Model Validation & Insights
-
+##  Model Validation & Insights
 ### Theoretical Foundation
 
 The model addresses key challenges in financial time series:
@@ -225,11 +103,11 @@ The model addresses key challenges in financial time series:
 ### Limitations & Considerations
 
 1. **Sample Scope**: Limited to IT sector stocks (20-30 stocks)
-2. **Computational Constraints**: Grid search optimization limited by available computing resources
+2. **Computational Constraints**: Grid search optimization limited by available computing resources (our team had access to limited computers)
 3. **Feature Engineering**: Uses only price data; could benefit from technical indicators
 4. **Market Efficiency**: Acknowledges random walk theory challenges in high-frequency prediction
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 ### Immediate Improvements
 - **Real-time Data Integration**: API connections for live stock feeds
@@ -243,7 +121,7 @@ The model addresses key challenges in financial time series:
 - **Risk Metrics**: Portfolio optimization and risk-adjusted return calculations
 - **Market Regime Detection**: Adaptive models for different market conditions
 
-## 📚 Academic Context
+## Academic Context
 
 This project demonstrates practical applications of:
 
@@ -251,17 +129,6 @@ This project demonstrates practical applications of:
 - **Hyperparameter Optimization**: Systematic grid search methodology
 - **Deep Learning for Finance**: Non-linear pattern recognition in market data
 - **Temporal Modeling**: Sequence-to-sequence prediction architectures
-
-### Research Contribution
-
-The study provides empirical evidence for LSTM effectiveness in multi-stock prediction while acknowledging the challenges posed by efficient market hypothesis and random walk behavior in high-frequency financial data.
-
-## 🤝 Usage Notes
-
-- **Data Replacement**: Current implementation uses synthetic data for demonstration
-- **Real Implementation**: Replace demo data with actual stock price CSV files
-- **Scalability**: Architecture supports different numbers of stocks and prediction horizons
-- **Validation**: Maintains temporal integrity in all train/test procedures
 
 ## 📄 Additional Resources
 
