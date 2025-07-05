@@ -1,4 +1,4 @@
-## MSc Dissertation: A Relational Event Model Approach to Online Collective Action
+## MSc Dissertation: Social Media and Market Disruption: Network Dynamics of Retail Investor Collective Action
 
 ## Objective
 This project provides actionable insights into the dynamics of online collective action, offering a framework for analyzing user interactions in large-scale social media networks. 
