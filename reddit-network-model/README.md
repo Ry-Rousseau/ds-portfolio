@@ -1,8 +1,5 @@
 ## MSc Dissertation: Social Media and Market Disruption: Network Dynamics of Retail Investor Collective Action
 
-## Objective
-This project provides actionable insights into the dynamics of online collective action, offering a framework for analyzing user interactions in large-scale social media networks. 
-
 **Dissertation PDF**: [msc_dissertation.pdf](DISSERTATION_FINAL.pdf)
 
 ## Problem & Context
