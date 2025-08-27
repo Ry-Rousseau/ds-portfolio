@@ -1,6 +1,7 @@
 # 🗺️ Data Science Portfolio
 
 This portfolio is a compilation of all the data science projects I have done for academic, self-learning and hobby purposes. This portfolio also contains my achievements, skills and certificates. It is updated on a regular basis. 
+These projects showcase the intersection of social science with data science for topics ranging from social predictive modelling to network analysis. 
 
 **Email:** [ryanhrousseau@gmail.com]  
 **LinkedIn:** [https://www.linkedin.com/in/ryan-rousseau-24104b230/)]  
