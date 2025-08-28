@@ -28,11 +28,18 @@ These projects showcase the intersection of social science with data science for
     - __R__
         - [UK Police Stop and Search](https://rpubs.com/ry_publisher_r/uk_police_bias): Visual analysis of racial bias in UK police stop and search practices using API data stored in relational databases.
         - [MSc Dissertation: Modeling Online Social Networks for Collective Action](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): An original model for measuring social media interactions in large-N networks. Analysed 5.3 million Reddit comments for academic dissertation and use in market and Internet research. Utilized Reddit shortsqueeze movement as a case study. 
-        - [Autocratic Bank Bailouts: Financialized Pensions Research](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation. 
-    
+        - [Autocratic Bank Bailouts: Financialized Pensions Research](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation.
     _Tools: tidyverse, ggplot2, igraph, SQL, survival, rMIDAS_
+	-__Python__
+		- [Career Preparedness Analysis](https://github.com/Ry-Rousseau/Career_Preparedness_Analysis): An examination into the behavioral, environmental and social factors driving career preparedness for a large-cap company
+    _Tools: pandas, seaborn, matplotlib, LFA, statsmodels
 
 - ### Natural Language Processing
+	- __Python__
+        - [Call Script Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): Analysis on customer feedback from a telecommunications company's field experiment testing new call scripts against controls using BERTopic and sentiment modeling to evaluate impacts on customer sentiment, satisfaction, and discussion topics to understand how to improve customer communications.
+	_Tools: pandas, BERT, GC API
+
+- ### Artificial Intelligence
     - __Python__
         - [AI Daily Briefer (Project Janice)](https://github.com/Ry-Rousseau/morning-brief): Building an AI-powered morning briefing system that aggregates personalized data from Gmail, Calendar, Weather, and News APIs to generate conversational audio summaries using Google's Gemini AI.
 
