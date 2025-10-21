@@ -30,14 +30,16 @@ These projects showcase the intersection of social science with data science for
         - [MSc Dissertation: Modeling Online Social Networks for Collective Action](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): An original model for measuring social media interactions in large-N networks. Analysed 5.3 million Reddit comments for academic dissertation and use in market and Internet research. Utilized Reddit shortsqueeze movement as a case study. 
         - [Autocratic Bank Bailouts: Financialized Pensions Research](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation.
     _Tools: tidyverse, ggplot2, igraph, SQL, survival, rMIDAS_
+
 	-__Python__
-		- [Career Preparedness Analysis](https://github.com/Ry-Rousseau/Career_Preparedness_Analysis): An examination into the behavioral, environmental and social factors driving career preparedness for a large-cap company
-    _Tools: pandas, seaborn, matplotlib, LFA, statsmodels
+  	- [Career Preparedness Analysis](https://github.com/Ry-Rousseau/Career_Preparedness_Analysis): An examination into the behavioral, environmental and social factors driving career preparedness for a large-cap company.
+  
+   	 _Tools: pandas, seaborn, matplotlib, LFA, statsmodels_
 
 - ### Natural Language Processing
 	- __Python__
         - [Call Script Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): Analysis on customer feedback from a telecommunications company's field experiment testing new call scripts against controls using BERTopic and sentiment modeling to evaluate impacts on customer sentiment, satisfaction, and discussion topics to understand how to improve customer communications.
-	_Tools: pandas, BERT, GC API
+	_Tools: pandas, BERT, GC API_
 
 - ### Artificial Intelligence
     - __Python__
@@ -50,6 +52,7 @@ These projects showcase the intersection of social science with data science for
 	- __Python__
 		- [Wikipedia Network Analyzer](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/wikipedia-network-analyzer/wiki_network_analyzer.ipynb): Parsing Wikipedia editing history to measure user interactions, reverts, and editing patterns with focus on efficiency, reducing algorithm runtime from 30 to 2.4 seconds.
 		- [Chopstick Game-playing Agent](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/chopstick-game-playing-agent/Chopsticks_Game_Agent.ipynb): Building a competitive game-playing agent using minimax algorithm with tree-pruning for the children's game chopsticks, implemented in a GUI widget.
+  
     - __R__
 		- [Civil War Predictor](https://rpubs.com/ry_publisher_r/lasso_civil_war_predictor): Predicting the likelihood of civil war outbreak with LASSO logistic regression on 53 sociopolitical variables.
         - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
