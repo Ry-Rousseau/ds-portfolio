@@ -64,11 +64,11 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
 
 ## Core Competencies
 
-- **Methodologies**: Econometric forecasting, Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Big Data Analytics
-- **Languages**: Python (Pandas, Numpy, Scikit-Learn, Scipy, Keras, Tensorflow, Matplotlib), R (dplyr, tidyr, caret, ggplot2, glm), SQL
-- **Tools**: MySQL, Tableau, Git, Google Cloud, Azure, Power BI, Streamlit
+- **Methodologies**: Econometric forecasting, Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Causal Inference, Social Measurement Creation, Network Analysis, Transformers
+- **Languages**: Python (Pandas, Numpy, Scikit-Learn, PyTorch, Matplotlib), R (dplyr, tidyr, caret, ggplot2, glm, tidyverse), SQL
+- **Tools**: MySQL, PostgreSQL, Git, Google Cloud, Azure, Power BI, R Shiny
 
-## Certificates
+#### Some Certificates
 
 - [Kaggle Time Series](https://www.kaggle.com/learn/certification/ryanrousseau/time-series)
 - [Kaggle Pandas](https://www.kaggle.com/learn/certification/ryanrousseau/pandas)
