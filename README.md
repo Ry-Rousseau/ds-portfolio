@@ -38,7 +38,7 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
         - [Autocratic Bank Bailouts: Financialized Pensions and Social Unrest](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation. Extensive Exploratory Analysis. Ongoing project with periodic merges from separate dev repo. 
     _Tools: tidyverse, ggplot2, igraph, SQL, survival, rMIDAS_
 
-	-__Python__
+	- __Python__
   		- [Career Preparedness Analysis](https://github.com/Ry-Rousseau/Career_Preparedness_Analysis): An examination into the behavioral, environmental and social factors driving career preparedness for a large-cap telecommunications company.
   	_Tools: pandas, seaborn, matplotlib, LFA, statsmodels_
 		- [UK Political Gender Divide Analysis](https://github.com/Ry-Rousseau/uk_political_gender_divide_analysis/tree/main): A hybrid engineering / statistical investigation into the growing divide in political preferences between young men and women for a UK-based analytics firm, generating an architecture for real-time analyis of new survey waves, with a battery of visuals and presentation on ongoing shifts.
