@@ -12,7 +12,7 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
 
 - ### Natural Language Processing / LLM Development
 	- __Python__
-        - [Frame Delta](https://github.com/Ry-Rousseau/frame-delta): An suite of high-performance, lightweight language models designed for political frame detection in mid to large-scale textual data, combining several gold-standard training corpuses with extensive model optimization, including mixture of experts, model-hierarchy and task-specific architectures
+        - [Frame Delta](https://github.com/Ry-Rousseau/frame-delta): An suite of high-performance, lightweight language models designed for political frame detection in mid to long textual data, combining gold-standard training corpuses with extensive engineering including mixture of experts, loss-function optimization and feature engineering
    _Tools: Pytorch, Longformer, RoBERTa, pandas, PostgreSQL_  
 		- [Call Script Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): Analysis on customer feedback from a telecommunications company's field experiment testing new call scripts against controls using BERTopic and sentiment modeling to evaluate impacts on customer sentiment, satisfaction, and discussion topics to understand how to improve customer communications.
 	_Tools: pandas, BERT, GC API_
