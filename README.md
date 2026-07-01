@@ -65,13 +65,7 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
         - [Primary School Network Analysis](https://rpubs.com/ry_publisher_r/education_network_analysis): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
 -->
 ## Core Competencies
-
-- **Methodologies**: Econometric forecasting, Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Causal Inference, Social Measurement Creation, Network Analysis, Transformers
-- **Languages**: Python (Pandas, Numpy, Scikit-Learn, PyTorch, Matplotlib), R (dplyr, tidyr, caret, ggplot2, glm, tidyverse), SQL
-- **Tools**: MySQL, PostgreSQL, Git, Google Cloud, Azure, Power BI, R Shiny
-
-#### Some Certificates
-
-- [Kaggle Time Series](https://www.kaggle.com/learn/certification/ryanrousseau/time-series)
-- [Kaggle Pandas](https://www.kaggle.com/learn/certification/ryanrousseau/pandas)
-- [Azure AI Fundamentals by Microsoft](https://www.credly.com/badges/5917b3f4-5ed9-4a10-94cc-6083177f0573/public_url)
+- **Engineering**: Kubernetes (GKE), Docker, FastAPI, CI/CD (GitHub Actions), GCP (BigQuery, Cloud SQL, GCS), Git
+- **Methodologies**: Causal Inference, Machine Learning, Deep Learning, Natural Language Processing, Network Analysis, Time Series Analysis, Experimental Design & A/B Testing, Transformers
+- **Languages**: Python (Pandas, Numpy, Scikit-Learn, PyTorch), R (dplyr, tidyr, tidyverse, ggplot2)
+- **Tools**: SQL, Git, Jupyter, LaTeX, Power BI, Claude Code
