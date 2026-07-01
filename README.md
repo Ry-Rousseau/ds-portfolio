@@ -13,11 +13,13 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
 - ### Natural Language Processing / LLM Development
 	- __Python__
         - [Frame Delta](https://github.com/Ry-Rousseau/frame-delta): An suite of high-performance, lightweight language models designed for political frame detection in mid to long textual data, combining gold-standard training corpuses with extensive engineering including mixture of experts, loss-function optimization and feature engineering
-   _Tools: Pytorch, Longformer, RoBERTa, pandas, PostgreSQL_  
+   _Tools: Pytorch, Longformer, RoBERTa models, pandas, PostgreSQL_
+
+<!--
+
 		- [Call Script Analysis](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): Analysis on customer feedback from a telecommunications company's field experiment testing new call scripts against controls using BERTopic and sentiment modeling to evaluate impacts on customer sentiment, satisfaction, and discussion topics to understand how to improve customer communications.
 	_Tools: pandas, BERT, GC API_
 		
-
 - ### Machine Learning
 
     - __Python__
@@ -29,15 +31,15 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
 		- [Voter Turnout Prediction Pipeline](https://rpubs.com/ry_publisher_r/1321477): An ensemble model to predict voter turnout on polling day for political outreach organizations. Achieves a 64.56% accuracy in identifying non-voters who represent 3.56% of population on publically available data.
 
     _Tools: tidyverse, caret, glmnet, lightgbm_
-
+-->
 - ### Data Analysis and Visualization
 
     - __R__
-        - [UK Police Stop and Search](https://rpubs.com/ry_publisher_r/uk_police_bias): Visual analysis of racial bias in UK police stop and search practices using API data stored in local relational database.
+        - [UK Police Stop and Search](https://rpubs.com/ry_publisher_r/uk_police_bias): Visual analysis of racial bias in UK police stop and search practices
         - [MSc Dissertation: Modeling Online Social Networks for Collective Action](https://github.com/Ry-Rousseau/ds-portfolio/blob/main/reddit-network-model/README.md): A novel Relational Event Model for large-N dynamic network analysis on social media data spanning 17-months, covering 5.3 million comments, for investigation into emergent market phenomenon and collective action on the Internet, utilizing the Reddit shortsqueeze as a case study.
         - [Autocratic Bank Bailouts: Financialized Pensions and Social Unrest](https://github.com/Ry-Rousseau/academic-research/blob/main/bjps_non_dem_banking_crises/README.md): Academic paper analyzing how financialized pension schemes constrain autocratic regimes during banking crises, using deep learning for missing data imputation. Extensive Exploratory Analysis. Ongoing project with periodic merges from separate dev repo. 
     _Tools: tidyverse, ggplot2, igraph, SQL, survival, rMIDAS_
-
+<!--
 	- __Python__
   		- [Career Preparedness Analysis](https://github.com/Ry-Rousseau/Career_Preparedness_Analysis): An examination into the behavioral, environmental and social factors driving career preparedness for a large-cap telecommunications company.
   	_Tools: pandas, seaborn, matplotlib, LFA, statsmodels_
@@ -61,7 +63,7 @@ These projects rely on the 4 tenants of responsible and effective AI usage: Dele
 		- [Civil War Predictor](https://rpubs.com/ry_publisher_r/lasso_civil_war_predictor): Predicting the likelihood of civil war outbreak with LASSO logistic regression on 53 sociopolitical variables.
         - [Economic Policy Interventions Survey Analysis](https://github.com/Ry-Rousseau/academic-research/tree/main/ejpr_econ_preferences): Conjoint survey experiment conducted across Australia and UK examining public support for COVID-19 economic interventions. 
         - [Primary School Network Analysis](https://rpubs.com/ry_publisher_r/education_network_analysis): Analyzing social networks among 6th-8th grade students to understand interpersonal dynamics and social interaction patterns.
-
+-->
 ## Core Competencies
 
 - **Methodologies**: Econometric forecasting, Machine Learning, Deep Learning, Time Series Analysis, Natural Language Processing, Statistics, A/B Testing and Experimentation Design, Causal Inference, Social Measurement Creation, Network Analysis, Transformers
